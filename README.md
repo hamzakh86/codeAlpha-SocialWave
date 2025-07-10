@@ -124,7 +124,7 @@ The application is designed to be intuitive, allowing users to easily navigate b
 
 ## Application Overview
 
-(To be added: Screenshots or a brief description of the SocialWave user interface will be inserted here to provide a visual overview of the application.)
+![SocialWave Application Overview](task3.PNG)
 
 ## Internship Details
 
