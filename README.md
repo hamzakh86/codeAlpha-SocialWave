@@ -42,23 +42,23 @@ The repository is organized into two main directories:
 
 ### Front-end (Client)
 
-*   React.js
-*   Redux (to be confirmed)
-*   Tailwind CSS
-*   JavaScript
+*   **React**: A JavaScript library for building user interfaces, enabling the creation of reusable UI components and efficient management of application state.
+*   **Redux**: A predictable state container for JavaScript applications, often used with React for centralized application state management.
+*   **Tailwind CSS**: A utility-first CSS framework that provides low-level classes to build custom designs directly in your markup, thus accelerating the styling process.
+*   **JavaScript**: The primary programming language used for front-end logic, interactivity, and communication with the server.
 
 ### Back-end (Server)
 
-*   Node.js
-*   Express.js
-*   MongoDB
-*   Mongoose
-*   JWT Authentication (to be confirmed)
-*   Passport.js (to be confirmed)
+*   **Node.js**: Server-side JavaScript runtime environment, enabling the building of scalable and high-performance network applications.
+*   **Express.js**: A minimalist and flexible web framework for Node.js, used to build robust RESTful APIs and manage routes and HTTP requests.
+*   **MongoDB**: A NoSQL document-oriented database, used to store application data in a flexible and scalable manner.
+*   **Mongoose**: An Object Data Modeling (ODM) library for Node.js and MongoDB, which provides a schema-based solution to model your application data and interact with the MongoDB database.
+*   **JWT (JSON Web Tokens)**: Used for user authentication, enabling secure communication between the client and server via signed tokens.
+*   **Passport.js**: Authentication middleware for Node.js, offering a flexible and modular approach to handle various authentication strategies (local, OAuth, etc.).
 
 ## Schema Diagram
 
-(To be added: A schema diagram of the database or system architecture will be inserted here.)
+A schema diagram of the database or system architecture is not currently available in the repository. This could be a future improvement for the project to provide a visual overview of the data structure and relationships.
 
 ## Getting Started
 
@@ -72,32 +72,59 @@ Before running the application, make sure you have the following installed:
 ### Installation
 
 1.  Clone the repository:
-
-    ```bash
+    
+    ```shell
     git clone https://github.com/hamzakh86/codeAlpha-SocialWave.git
     ```
-
+    
 2.  Navigate to the project directory:
-
-    ```bash
+    
+    ```shell
     cd codeAlpha-SocialWave
     ```
-
+    
 3.  Install dependencies for both the client and server. Detailed instructions are available in the respective `README.md` files in the `client` and `server` folders.
+    
 
 ### Execution
 
 To start the application, follow the specific instructions provided in the `README.md` files in the `client` and `server` folders.
 
+*   **Client (Front-end)**:
+    1.  Ensure you are in the `client/` directory.
+    2.  Run the start command:
+        ```shell
+        npm start
+        # or
+        yarn start
+        ```
+        This will launch a local development server and open the application in your default browser, typically accessible at `http://localhost:3000`.
+
+*   **Server (Back-end)**:
+    1.  Ensure you are in the `server/` directory.
+    2.  Run the start command:
+        ```shell
+        npm start
+        # or
+        node app.js
+        ```
+        This will launch the Node.js server, typically accessible at `http://localhost:5000`.
+
 ## Usage
 
-(To be added: Information on how to use the application, user roles, and key functionalities will be detailed here.)
+The SocialWave application simulates a social network where users can register, log in, create and manage their profiles, post content, comment on other users' posts, like posts and comments, and follow/unfollow other users. Key functionalities include:
+
+*   **Account Management**: Registration, login, logout.
+*   **User Profile**: Creation, editing, and viewing of your own profile and those of other users.
+*   **News Feed**: Display of posts from users you follow.
+*   **Interaction**: Posting, commenting, liking, and sharing content.
+*   **Networking**: Following other users to see their activities.
+
+The application is designed to be intuitive, allowing users to easily navigate between different sections and interact with content.
 
 ## Application Overview
 
-Here is an overview of the SocialWave user interface:
-
-![SocialWave Overview](https://private-us-east-1.manuscdn.com/sessionFile/JBSn2v6bQWlQtZM1zvzl9o/sandbox/qVqKqiCcYuSs8O5qoF11hV-images_1752178977408_na1fn_L2hvbWUvdWJ1bnR1L2NvZGVBbHBoYS1Tb2NpYWxXYXZlL3Rhc2sz.PNG?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvSkJTbjJ2NmJRV2xRdFpNMXp2emw5by9zYW5kYm94L3FWcUtxaUNjWXVTczhPNXFvRjExaFYtaW1hZ2VzXzE3NTIxNzg5Nzc0MDhfbmExZm5fTDJodmJXVXZkV0oxYm5SMUwyTnZaR1ZCYkhCb1lTMVRiMk5wWVd4WFlYWmxMM1JoYzJzei5QTkciLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=BY2YrNaP3TfLeROb-EqLp6Z6mVzRfe-3uCNBfEWK85~xzVmz~l3a9URNDkc5mIh6kv3XhI69Rb4fBHjMxNQzOldKsLSESwLUf5Mf4K9xd2ddPzhXy9WrO5js73tbGet4Auytg-Rv32bNkCUHde77m-XKDV9KRfoJ2Y8ArIZiOWZtvAY6RexgDrmPruDKg8~zVMh4omnLZzCs2n3-8ETqrXEJHmrIjREFsQ7OxqspK-r~2ZhuO7EGBOisZix1eG1AvPLMeiqsn2GpAKsi2Ekd53DJ~yCYeCYLTSUq6LeGwJPvmoEIcygf191kuokVGfMdnorGwrSVOJn7mLnd1hXO2A__)
+(To be added: Screenshots or a brief description of the SocialWave user interface will be inserted here to provide a visual overview of the application.)
 
 ## Internship Details
 
@@ -111,12 +138,12 @@ Here is an overview of the SocialWave user interface:
 For any questions regarding this project, you can contact:
 
 *   **Hamza Khaled**
-*   **CodeAlpha Team**: services@codealpha.tech
+*   **CodeAlpha Team**: [services@codealpha.tech](mailto:services@codealpha.tech)
 
 ## Useful Links
 
 *   [Project GitHub Repository](https://github.com/hamzakh86/codeAlpha-SocialWave)
-*   [Internship WhatsApp Group](https://chat.whatsapp.com/HgbVo9hzCl5JNpAsurNBHs)
+*   [Internship WhatsApp Group]()
 
 ## Acknowledgments
 

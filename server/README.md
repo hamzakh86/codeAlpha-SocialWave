@@ -17,10 +17,10 @@ This back-end project is developed with the following technologies:
 
 *   **Node.js**: Server-side JavaScript runtime environment, enabling the building of scalable and high-performance network applications.
 *   **Express.js**: A minimalist and flexible web framework for Node.js, used to build robust RESTful APIs and manage routes and HTTP requests.
-*   **MongoDB**: A NoSQL document-oriented database, used to store application data in a flexible and scalable manner. (To be confirmed through in-depth code analysis to ensure its effective use).
+*   **MongoDB**: A NoSQL document-oriented database, used to store application data in a flexible and scalable manner.
 *   **Mongoose**: An Object Data Modeling (ODM) library for Node.js and MongoDB, which provides a schema-based solution to model your application data and interact with the MongoDB database.
-*   **JWT (JSON Web Tokens)** (to be confirmed): Used for user authentication, enabling secure communication between the client and server via signed tokens.
-*   **Passport.js** (to be confirmed): Authentication middleware for Node.js, offering a flexible and modular approach to handle various authentication strategies (local, OAuth, etc.).
+*   **JWT (JSON Web Tokens)**: Used for user authentication, enabling secure communication between the client and server via signed tokens.
+*   **Passport.js**: Authentication middleware for Node.js, offering a flexible and modular approach to handle various authentication strategies (local, OAuth, etc.).
 
 ## Folder Structure
 
@@ -97,7 +97,8 @@ The application's API endpoints are defined in the `routes/` folder. Each route 
 To understand the available endpoints, their HTTP methods (GET, POST, PUT, DELETE), expected parameters, and responses, you can:
 
 *   **Explore the files in `routes/`**: Each route file (e.g., `user.route.js`, `post.route.js`) defines the paths and associated controllers.
-*   **Consult the API documentation** (if available): OpenAPI/Swagger documentation would be ideal for a complete understanding of the APIs. (If not present, this could be a future improvement for the project).
+*   **Consult the API documentation** (if available): OpenAPI/Swagger documentation would be ideal for a complete understanding of the APIs.
 
 Controllers in the `controllers/` folder contain the detailed logic for each endpoint, including interaction with the database via models (`models/`) and application of business rules.
+
 

@@ -17,7 +17,7 @@ This front-end project is developed with the following technologies:
 *   **React**: A JavaScript library for building user interfaces, enabling the creation of reusable UI components and efficient management of application state.
 *   **Tailwind CSS**: A utility-first CSS framework that provides low-level classes to build custom designs directly in your markup, thus accelerating the styling process.
 *   **JavaScript**: The primary programming language used for front-end logic, interactivity, and communication with the server.
-*   **Redux** (to be confirmed): A predictable state container for JavaScript applications, often used with React for centralized application state management.
+*   **Redux**: A predictable state container for JavaScript applications, often used with React for centralized application state management.
 
 ## Folder Structure
 
@@ -40,53 +40,55 @@ The `client/` folder is logically organized to facilitate development and mainte
 To set up and install the front-end project dependencies, follow these steps:
 
 1.  Ensure you are in the `client/` directory of your project:
-
-    ```bash
+    
+    ```shell
     cd codeAlpha-SocialWave/client
     ```
-
+    
 2.  Install all necessary dependencies using npm or yarn:
-
-    ```bash
+    
+    ```shell
     npm install
     # or
     yarn install
     ```
-
+    
     This command will read the `package.json` file and download all libraries listed in `dependencies` and `devDependencies`.
+    
 
 ## Running the Application
 
 Once the dependencies are installed, you can start the application in development mode:
 
 1.  Ensure you are in the `client/` directory.
-
+    
 2.  Run the start command:
-
-    ```bash
+    
+    ```shell
     npm start
     # or
     yarn start
     ```
-
+    
     This command will launch a local development server and open the application in your default browser. The application will typically be accessible at `http://localhost:3000`.
-
+    
     Development mode includes Hot Module Replacement for a fast development experience, where code changes are reflected instantly without requiring a full page reload.
+    
 
 ## Building the Application
 
 To prepare the application for production deployment, you need to create an optimized build:
 
 1.  Ensure you are in the `client/` directory.
-
+    
 2.  Run the build command:
-
-    ```bash
+    
+    ```shell
     npm run build
     # or
     yarn build
     ```
-
+    
     This command will compile and minify all application files (JavaScript, CSS, images, etc.) and place them in a production folder (usually `build/` or `dist/`). These files are optimized for performance and size, ready to be served by a static web server.
 
 
