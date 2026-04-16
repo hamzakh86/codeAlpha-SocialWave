@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const requestIp = require("request-ip");
+const useragent = require("express-useragent");
 const adminRoutes = require("./routes/admin.route");
 const userRoutes = require("./routes/user.route");
 const postRoutes = require("./routes/post.route");
@@ -15,17 +17,24 @@ const cors = require("cors");
 const morgan = require("morgan");
 const passport = require("passport");
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 const db = new Database(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-db.connect().catch((err) =>
-  console.error("Error connecting to database:", err)
-);
+// Connexion à la base de données avec gestion d'erreur
+db.connect()
+  .then(() => console.log("Connected to database successfully!"))
+  .catch((err) => {
+    console.error("Error connecting to database:", err.message);
+    console.error("Please check your MongoDB connection string and IP whitelist");
+  });
 
+// Middlewares globaux
+app.use(requestIp.mw());
+app.use(useragent.express());
 app.use(cors());
 app.use(morgan("dev"));
 app.use("/assets/userFiles", express.static(__dirname + "/assets/userFiles"));
@@ -39,17 +48,36 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 require("./config/passport.js");
 
+// Routes publiques
 app.get("/server-status", (req, res) => {
   res.status(200).json({ message: "Server is up and running!" });
 });
 
 app.get("/search", decodeToken, search);
 
-app.use("/auth", contextAuthRoutes);
-app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
-app.use("/communities", communityRoutes);
-app.use("/admin", adminRoutes);
+// Routes API avec préfixe /api
+app.use("/api/auth", contextAuthRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/communities", communityRoutes);
+app.use("/api/admin", adminRoutes);
+
+// Gestion des erreurs 404
+app.use((req, res) => {
+  res.status(404).json({ 
+    message: "Route not found", 
+    requestedUrl: req.url 
+  });
+});
+
+// Gestion globale des erreurs
+app.use((err, req, res, next) => {
+  console.error("Error:", err.stack);
+  res.status(500).json({ 
+    message: "Something went wrong!", 
+    error: err.message 
+  });
+});
 
 process.on("SIGINT", async () => {
   try {
