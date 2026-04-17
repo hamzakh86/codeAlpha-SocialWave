@@ -35,7 +35,15 @@ db.connect()
 // Middlewares globaux
 app.use(requestIp.mw());
 app.use(useragent.express());
-app.use(cors());
+
+// Configuration CORS optimisée pour la production
+app.use(cors({
+  origin: true, // Autorise l'origine de la requête (utile pour Netlify)
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(morgan("dev"));
 app.use("/assets/userFiles", express.static(__dirname + "/assets/userFiles"));
 app.use(
