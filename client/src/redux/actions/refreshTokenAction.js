@@ -19,7 +19,8 @@ API.interceptors.request.use((req) => {
 
 export const refreshTokenAction = (refreshToken) => async (dispatch) => {
   try {
-    const response = await API.post("/users/refresh-token", {
+    // ✅ MODIFICATION ICI : Enlever "/users"
+    const response = await API.post("/refresh-token", {  // ← Changement important
       refreshToken,
     });
     const profile = JSON.parse(localStorage.getItem("profile"));
