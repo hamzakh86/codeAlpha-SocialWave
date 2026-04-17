@@ -1,6 +1,9 @@
 import axios from "axios";
-const API = axios.create({
+
 const BASE_URL = "https://codealpha-socialwave.onrender.com";
+
+const API = axios.create({
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,6 +16,7 @@ API.interceptors.request.use((req) => {
   }
   return req;
 });
+
 export const refreshTokenAction = (refreshToken) => async (dispatch) => {
   try {
     const response = await API.post("/users/refresh-token", {
@@ -29,7 +33,7 @@ export const refreshTokenAction = (refreshToken) => async (dispatch) => {
     localStorage.removeItem("profile");
     dispatch({
       type: "REFRESH_TOKEN_FAIL",
-      payload: error.response.data,
+      payload: error.response?.data || "Token refresh failed",
     });
   }
 };
