@@ -35,7 +35,7 @@ db.connect()
 app.use(requestIp.mw());
 app.use(useragent.express());
 
-// Configuration CORS : Autorise toutes les origines en développement et s'adapte en production
+// Configuration CORS : origin: true permet d'accepter dynamiquement votre URL Netlify
 app.use(cors({
   origin: true, 
   credentials: true,
@@ -52,23 +52,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 require("./config/passport.js");
 
-// --- ROUTES API ---
+// --- ROUTES (Alignées sur le code du Client) ---
 
-// Route de statut (déplacée sous /api pour la cohérence avec le client)
-app.get("/api/server-status", (req, res) => {
+// Route de statut
+app.get("/server-status", (req, res) => {
   res.status(200).json({ message: "Server is up and running!" });
 });
 
-app.get("/api/search", decodeToken, search);
+app.get("/search", decodeToken, search);
 
-// Groupement des routes sous le préfixe /api
-app.use("/api/auth", contextAuthRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/communities", communityRoutes);
-app.use("/api/admin", adminRoutes);
+// Routes sans préfixe /api pour correspondre aux appels du client (ex: /users/signin)
+app.use("/auth", contextAuthRoutes);
+app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
+app.use("/communities", communityRoutes);
+app.use("/admin", adminRoutes);
 
-// Gestion des erreurs 404 (Toutes les routes non trouvées)
+// Gestion des erreurs 404
 app.use((req, res) => {
   res.status(404).json({ 
     message: "Route not found", 
