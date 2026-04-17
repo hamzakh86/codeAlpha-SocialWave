@@ -1,9 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+// URL forcée pour la production sur Render
+const BASE_URL = "https://codealpha-socialwave.onrender.com";
 const ADMIN_URL = `${BASE_URL}/admin`;
 
-const authInterceptor = (req) => {
+const authInterceptor = (req ) => {
   const accessToken = JSON.parse(localStorage.getItem("profile"))?.accessToken;
   if (accessToken) {
     req.headers.Authorization = `Bearer ${accessToken}`;
