@@ -8,6 +8,9 @@ import { getTitleFromRoute } from "./utils/docTitle";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router-dom";
 
+// ✅ AJOUTEZ LA CONSTANTE DE L'API
+const API_URL = process.env.REACT_APP_API_URL || "https://codealpha-socialwave.onrender.com";
+
 const ErrorComponent = ({ errorMessage }) => (
   <div className="text-red-500 font-bold text-center">{errorMessage}</div>
 );
@@ -21,8 +24,10 @@ const AppContainer = () => {
   useEffect(() => {
     const checkServerStatus = async () => {
       try {
-        await axios.get("/server-status");
+        // ✅ CORRECTION ICI : Utilisez l'URL complète
+        await axios.get(`${API_URL}/server-status`);
       } catch (err) {
+        console.error("Server status error:", err);
         setError("Server is down. Please try again later.");
       } finally {
         setLoading(false);
