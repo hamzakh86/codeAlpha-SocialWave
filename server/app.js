@@ -24,21 +24,20 @@ const db = new Database(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
 });
 
-// Connexion à la base de données avec gestion d'erreur
+// Connexion à la base de données
 db.connect()
   .then(() => console.log("Connected to database successfully!"))
   .catch((err) => {
     console.error("Error connecting to database:", err.message);
-    console.error("Please check your MongoDB connection string and IP whitelist");
   });
 
 // Middlewares globaux
 app.use(requestIp.mw());
 app.use(useragent.express());
 
-// Configuration CORS optimisée pour la production
+// Configuration CORS : Autorise toutes les origines en développement et s'adapte en production
 app.use(cors({
-  origin: true, // Autorise l'origine de la requête (utile pour Netlify)
+  origin: true, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -46,31 +45,30 @@ app.use(cors({
 
 app.use(morgan("dev"));
 app.use("/assets/userFiles", express.static(__dirname + "/assets/userFiles"));
-app.use(
-  "/assets/userAvatars",
-  express.static(__dirname + "/assets/userAvatars")
-);
+app.use("/assets/userAvatars", express.static(__dirname + "/assets/userAvatars"));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 require("./config/passport.js");
 
-// Routes publiques
-app.get("/server-status", (req, res) => {
+// --- ROUTES API ---
+
+// Route de statut (déplacée sous /api pour la cohérence avec le client)
+app.get("/api/server-status", (req, res) => {
   res.status(200).json({ message: "Server is up and running!" });
 });
 
-app.get("/search", decodeToken, search);
+app.get("/api/search", decodeToken, search);
 
-// Routes API avec préfixe /api
+// Groupement des routes sous le préfixe /api
 app.use("/api/auth", contextAuthRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/communities", communityRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Gestion des erreurs 404
+// Gestion des erreurs 404 (Toutes les routes non trouvées)
 app.use((req, res) => {
   res.status(404).json({ 
     message: "Route not found", 
