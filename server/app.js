@@ -17,6 +17,7 @@ const Database = require("./config/database");
 const decodeToken = require("./middlewares/auth/decodeToken");
 
 const app = express();
+app.set("trust proxy", 1); // ✅ Fix Render proxy
 
 // ==================== MIDDLEWARES ====================
 app.use(cors({
@@ -39,8 +40,6 @@ app.use("/assets/userFiles", express.static(__dirname + "/assets/userFiles"));
 app.use("/assets/userAvatars", express.static(__dirname + "/assets/userAvatars"));
 
 // ==================== ROUTES ====================
-
-// Route racine (pour tester)
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "SocialWave API is running!",
@@ -48,29 +47,21 @@ app.get("/", (req, res) => {
   });
 });
 
-// Route de statut du serveur
 app.get("/server-status", (req, res) => {
   res.status(200).json({ message: "Server is up and running!" });
 });
 
-// Route refresh token
 app.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
-
     if (!refreshToken) {
       return res.status(400).json({ message: "Refresh token required" });
     }
-
-    console.log("Refresh token reçu");
-
-    // TODO: Ajouter votre logique de vérification du refresh token
     res.json({
       accessToken: "nouveau_token_temp",
       refreshToken: refreshToken,
       result: { _id: "test", name: "Test User" }
     });
-
   } catch (error) {
     console.error("Refresh token error:", error);
     res.status(500).json({ message: "Server error" });
@@ -86,8 +77,6 @@ app.use("/communities", communityRoutes);
 app.use("/admin", adminRoutes);
 
 // ==================== GESTION DES ERREURS ====================
-
-// Route 404 - Page non trouvée
 app.use((req, res) => {
   res.status(404).json({
     message: "Route not found",
@@ -95,7 +84,6 @@ app.use((req, res) => {
   });
 });
 
-// Gestion globale des erreurs
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
   res.status(500).json({
@@ -117,7 +105,6 @@ db.connect()
   });
 
 // ==================== DÉMARRAGE DU SERVEUR ====================
-// CRUCIAL POUR RENDER : Écouter sur 0.0.0.0 et utiliser le port fourni
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server up and running on port ${PORT}!`);
