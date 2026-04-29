@@ -2,9 +2,8 @@ import axios from "axios";
 
 // URL forcée pour la production sur Render
 const BASE_URL = "https://codealpha-socialwave.onrender.com";
-const ADMIN_URL = `${BASE_URL}/admin`;
 
-const authInterceptor = (req ) => {
+const authInterceptor = (req) => {
   const accessToken = JSON.parse(localStorage.getItem("profile"))?.accessToken;
   if (accessToken) {
     req.headers.Authorization = `Bearer ${accessToken}`;
@@ -24,8 +23,9 @@ export const API = axios.create({
   baseURL: BASE_URL,
 });
 
+// MODIFICATION: ADMIN_API utilise maintenant BASE_URL au lieu de ADMIN_URL
 export const ADMIN_API = axios.create({
-  baseURL: ADMIN_URL,
+  baseURL: BASE_URL,  // Changé ici - plus de /admin
 });
 
 export const COMMUNITY_API = axios.create({
