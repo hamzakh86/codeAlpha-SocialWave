@@ -1,8 +1,9 @@
-import { ADMIN_API, handleApiError } from "./utils";
+import { ADMIN_API, API, handleApiError } from "./utils";  // Ajout de API
 
 export const signIn = async (credential) => {
   try {
-    const res = await ADMIN_API.post("/signin", credential);
+    // MODIFICATION: Utilise API au lieu de ADMIN_API, et /users/signin
+    const res = await API.post("/users/signin", credential);
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -11,7 +12,7 @@ export const signIn = async (credential) => {
 
 export const getServicePreferences = async () => {
   try {
-    const res = await ADMIN_API.get("/preferences");
+    const res = await ADMIN_API.get("/admin/preferences");
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -20,7 +21,7 @@ export const getServicePreferences = async () => {
 
 export const updateServicePreferences = async (preferences) => {
   try {
-    await ADMIN_API.put("/preferences", preferences);
+    await ADMIN_API.put("/admin/preferences", preferences);
   } catch (error) {
     return handleApiError(error);
   }
@@ -28,7 +29,7 @@ export const updateServicePreferences = async (preferences) => {
 
 export const getLogs = async () => {
   try {
-    const res = await ADMIN_API.get("/logs");
+    const res = await ADMIN_API.get("/admin/logs");
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -37,7 +38,7 @@ export const getLogs = async () => {
 
 export const deleteLogs = async () => {
   try {
-    await ADMIN_API.delete("/logs");
+    await ADMIN_API.delete("/admin/logs");
   } catch (error) {
     return handleApiError(error);
   }
@@ -45,7 +46,7 @@ export const deleteLogs = async () => {
 
 export const getCommunities = async () => {
   try {
-    const res = await ADMIN_API.get("/communities");
+    const res = await ADMIN_API.get("/admin/communities");
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -54,7 +55,7 @@ export const getCommunities = async () => {
 
 export const getCommunity = async (communityId) => {
   try {
-    const res = await ADMIN_API.get(`/community/${communityId}`);
+    const res = await ADMIN_API.get(`/admin/community/${communityId}`);
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -63,7 +64,7 @@ export const getCommunity = async (communityId) => {
 
 export const getModerators = async () => {
   try {
-    const res = await ADMIN_API.get("/moderators");
+    const res = await ADMIN_API.get("/admin/moderators");
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
@@ -72,7 +73,7 @@ export const getModerators = async () => {
 
 export const addModerator = async (communityId, moderatorId) => {
   try {
-    await ADMIN_API.patch("/add-moderators", null, {
+    await ADMIN_API.patch("/admin/add-moderators", null, {
       params: { communityId, moderatorId },
     });
   } catch (error) {
@@ -82,7 +83,7 @@ export const addModerator = async (communityId, moderatorId) => {
 
 export const removeModerator = async (communityId, moderatorId) => {
   try {
-    await ADMIN_API.patch("/remove-moderators", null, {
+    await ADMIN_API.patch("/admin/remove-moderators", null, {
       params: { communityId, moderatorId },
     });
   } catch (error) {
