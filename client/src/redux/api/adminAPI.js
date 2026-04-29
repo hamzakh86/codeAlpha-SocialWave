@@ -1,9 +1,9 @@
-import { ADMIN_API, API, handleApiError } from "./utils";  // Ajout de API
+import { ADMIN_API, handleApiError } from "./utils";
 
+// ✅ CORRECTION: /admin/signin au lieu de /users/signin
 export const signIn = async (credential) => {
   try {
-    // MODIFICATION: Utilise API au lieu de ADMIN_API, et /users/signin
-    const res = await API.post("/users/signin", credential);
+    const res = await ADMIN_API.post("/admin/signin", credential);
     return { error: null, data: res.data };
   } catch (error) {
     return handleApiError(error);
