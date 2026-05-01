@@ -1,0 +1,53 @@
+services:
+  # ---- Backend (Express API) ----
+  server:
+    build: ./server
+    container_name: socialwave-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    depends_on:
+      - mongo
+    volumes:
+      - uploads-files:/app/assets/userFiles
+      - uploads-avatars:/app/assets/userAvatars
+    networks:
+      - socialwave-network
+
+  # ---- Frontend (React + Nginx) ----
+  client:
+    build:
+      context: ./client
+      args:
+        REACT_APP_API_URL: /api
+    container_name: socialwave-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - socialwave-network
+
+  # ---- MongoDB ----
+  mongo:
+    image: mongo:7
+    container_name: socialwave-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - socialwave-network
+
+networks:
+  socialwave-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  uploads-files:
+  uploads-avatars:
