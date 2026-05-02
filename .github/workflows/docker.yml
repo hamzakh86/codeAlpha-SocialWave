@@ -11,8 +11,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  SERVER_IMAGE: ghcr.io/${{ github.repository }}/server
-  CLIENT_IMAGE: ghcr.io/${{ github.repository }}/client
 
 jobs:
   build-and-push:
@@ -25,6 +23,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set lower case repository name
+        run: |
+          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Set Image names
+        run: |
+          echo "SERVER_IMAGE=${{ env.REGISTRY }}/${{ env.REPO_LC }}/server" >> ${GITHUB_ENV}
+          echo "CLIENT_IMAGE=${{ env.REGISTRY }}/${{ env.REPO_LC }}/client" >> ${GITHUB_ENV}
 
       # ---- Docker setup ----
       - name: Set up Docker Buildx
