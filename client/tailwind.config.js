@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     "./node_modules/tw-elements/dist/js/**/*.js",
@@ -29,22 +30,28 @@ module.exports = {
       colors: {
         background: {
           DEFAULT: "#F6F7FA",
+          dark: "#0B0F19", // Deep mediterranean night
           200: "#272727",
           300: "#2e2e2e",
         },
         primary: {
-          DEFAULT: "#008cff",
-          50: "#63ceff",
-          100: "#23b7fc",
-          200: "#00bfff",
-          300: "#00aeff",
-          400: "#0099ff",
-          500: "#008cff",
-          600: "#0067FF",
-          700: "#0040ff",
-          800: "#0e4bff",
-          900: "#0000ff",
+          DEFAULT: "#00bfff", // Vibrant blue
+          50: "#e0f7fa",
+          100: "#b2ebf2",
+          200: "#80deea",
+          300: "#4dd0e1",
+          400: "#26c6da",
+          500: "#00bcd4", // Cyan
+          600: "#00acc1",
+          700: "#0097a7",
+          800: "#00838f",
+          900: "#006064",
         },
+        accent: {
+          DEFAULT: "#FFB300", // Sahara Gold
+          500: "#FFB300",
+          600: "#FF8F00",
+        }
       },
     },
   },

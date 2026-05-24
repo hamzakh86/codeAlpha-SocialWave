@@ -17,36 +17,36 @@ const CommentSidebar = ({ comments }) => {
   };
 
   return (
-    <div className="col-span-1 bg-white sticky top-20 h-[85vh] p-5 rounded-md border overflow-y-auto">
+    <aside className="app-panel col-span-1 mx-3 mt-0 max-h-[70vh] overflow-y-auto rounded-lg p-4 md:sticky md:top-24 md:mx-0 md:mt-6 md:h-[calc(100vh-7rem)] md:max-h-none">
       {currentComments.length > 0 && (
         <div>
-          <h2 className="font-semibold mb-4 text-center py-2 border-b-2">
+          <h2 className="mb-4 border-b border-gray-100 pb-3 text-sm font-bold uppercase tracking-wide text-gray-900 dark:border-gray-800 dark:text-white">
             Recent Comments
           </h2>
           {currentComments.map((comment) => (
             <div
               key={comment._id}
-              className="flex flex-col bg-white p-2 border-b w-full"
+              className="flex w-full flex-col border-b border-gray-100 py-3 dark:border-gray-800"
             >
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <img
                   src={comment.user.avatar}
                   alt="User Avatar"
-                  className="rounded-full overflow-hidden w-[30px] h-[30px] object-cover"
+                  className="h-9 w-9 rounded-lg object-cover"
                 />
 
-                <div className="flex flex-col">
-                  <span className="text-md font-semibold hover:underline">
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-semibold text-gray-900 hover:text-primary-500 dark:text-white">
                     <Link to={`/user/${comment.user._id}`}>
                       {comment.user.name}
                     </Link>
                   </span>
-                  <p className="text-gray-500 text-xs ml-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {comment.createdAt}
                   </p>
                 </div>
               </div>
-              <p className="text-sm mt-2 whitespace-normal break-words">
+              <p className="mt-2 whitespace-normal break-words text-sm text-gray-700 dark:text-gray-300">
                 {comment.content}
               </p>
             </div>
@@ -54,7 +54,7 @@ const CommentSidebar = ({ comments }) => {
 
           {currentComments.length < comments.length && (
             <button
-              className="text-primary text-sm font-semibold mt-3 w-full"
+              className="app-focus mt-3 w-full rounded-lg bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-300"
               onClick={handleLoadMore}
             >
               Load More
@@ -64,11 +64,12 @@ const CommentSidebar = ({ comments }) => {
       )}
 
       {currentComments.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full">
-          <p className="text-lg font-semibold mb-4">No Comments Yet</p>
+        <div className="flex h-full min-h-[12rem] flex-col items-center justify-center">
+          <p className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">No comments yet</p>
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">Be the first to start the discussion.</p>
         </div>
       )}
-    </div>
+    </aside>
   );
 };
 

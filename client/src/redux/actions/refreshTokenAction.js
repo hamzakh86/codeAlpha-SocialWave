@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// ✅ Utilisez la variable d'environnement (recommandé)
-const BASE_URL = process.env.REACT_APP_API_URL || "https://codealpha-socialwave.onrender.com";
+const DEFAULT_API_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://codealpha-socialwave.onrender.com";
+const BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
 
 const API = axios.create({
   baseURL: BASE_URL,
@@ -20,8 +24,7 @@ API.interceptors.request.use((req) => {
 
 export const refreshTokenAction = (refreshToken) => async (dispatch) => {
   try {
-    // ✅ MODIFICATION IMPORTANTE : Enlever "/users"
-    const response = await API.post("/refresh-token", {  // ← Changement clé
+    const response = await API.post("/refresh-token", {
       refreshToken,
     });
     const profile = JSON.parse(localStorage.getItem("profile"));

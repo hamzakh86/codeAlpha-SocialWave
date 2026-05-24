@@ -2,6 +2,7 @@ const dayjs = require("dayjs");
 const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 const formatCreatedAt = require("../utils/timeConverter");
+const mongoose = require("mongoose");
 
 const Post = require("../models/post.model");
 const Community = require("../models/community.model");
@@ -12,10 +13,40 @@ const Report = require("../models/report.model");
 const PendingPost = require("../models/pendingPost.model");
 const fs = require("fs");
 
+const canAccessPost = async (postId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return { allowed: false, status: 400, message: "Invalid post id" };
+  }
+
+  const post = await Post.findById(postId).select("community user");
+  if (!post) {
+    return { allowed: false, status: 404, message: "Post not found" };
+  }
+
+  const isMember = await Community.exists({
+    _id: post.community,
+    members: userId,
+  });
+
+  if (!isMember) {
+    return {
+      allowed: false,
+      status: 403,
+      message: "You are not authorized to access this post",
+    };
+  }
+
+  return { allowed: true, post };
+};
+
 const createPost = async (req, res) => {
   try {
     const { communityId, content } = req.body;
     const { userId, file, fileUrl, fileType } = req;
+
+    if (!communityId) {
+      return res.status(400).json({ message: "communityId is required" });
+    }
 
     const community = await Community.findOne({
       _id: { $eq: communityId },
@@ -156,6 +187,17 @@ const getPost = async (req, res) => {
     const post = await findPostById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
+    }
+
+    const isMember = await Community.exists({
+      _id: post.community._id,
+      members: userId,
+    });
+
+    if (!isMember) {
+      return res.status(403).json({
+        message: "You are not authorized to view this post",
+      });
     }
 
     const comments = await findCommentsByPostId(postId);
@@ -351,13 +393,31 @@ const getFollowingUsersPosts = async (req, res) => {
 const deletePost = async (req, res) => {
   try {
     const id = req.params.id;
-    const post = await Post.findById(id);
+    const post = await Post.findById(id).populate("community", "moderators");
 
     if (!post) {
       return res.status(404).json({
         message: "Post not found. It may have been deleted already",
       });
     }
+
+    const userId = req.userId.toString();
+    const isOwner = post.user.toString() === userId;
+    const isModerator = post.community?.moderators?.some(
+      (moderatorId) => moderatorId.toString() === userId
+    );
+
+    if (!isOwner && !isModerator) {
+      return res.status(403).json({
+        message: "You are not authorized to delete this post",
+      });
+    }
+
+    await Promise.all([
+      Comment.deleteMany({ post: id }),
+      Report.deleteMany({ post: id }),
+      User.updateMany({ savedPosts: id }, { $pull: { savedPosts: id } }),
+    ]);
 
     await post.remove();
     res.status(200).json({
@@ -390,6 +450,11 @@ const likePost = async (req, res) => {
   try {
     const id = req.params.id;
     const userId = req.userId;
+    const access = await canAccessPost(id, userId);
+    if (!access.allowed) {
+      return res.status(access.status).json({ message: access.message });
+    }
+
     const updatedPost = await Post.findOneAndUpdate(
       {
         _id: id,
@@ -429,6 +494,10 @@ const unlikePost = async (req, res) => {
   try {
     const id = req.params.id;
     const userId = req.userId;
+    const access = await canAccessPost(id, userId);
+    if (!access.allowed) {
+      return res.status(access.status).json({ message: access.message });
+    }
 
     const updatedPost = await Post.findOneAndUpdate(
       {
@@ -467,6 +536,11 @@ const addComment = async (req, res) => {
   try {
     const { content, postId } = req.body;
     const userId = req.userId;
+    const access = await canAccessPost(postId, userId);
+    if (!access.allowed) {
+      return res.status(access.status).json({ message: access.message });
+    }
+
     const newComment = new Comment({
       user: userId,
       post: postId,
@@ -516,6 +590,10 @@ const saveOrUnsavePost = async (req, res, operation) => {
      */
     const id = req.params.id;
     const userId = req.userId;
+    const access = await canAccessPost(id, userId);
+    if (!access.allowed) {
+      return res.status(access.status).json({ message: access.message });
+    }
 
     const update = {};
     update[operation === "$addToSet" ? "$addToSet" : "$pull"] = {
@@ -617,7 +695,9 @@ const getPublicPosts = async (req, res) => {
       following: publicUserId,
     });
     if (!isFollowing) {
-      return null;
+      return res.status(403).json({
+        message: "You need to follow this user to view their posts",
+      });
     }
 
     const commonCommunityIds = await Community.find({

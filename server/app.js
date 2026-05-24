@@ -15,6 +15,7 @@ const contextAuthRoutes = require("./routes/context-auth.route");
 const search = require("./controllers/search.controller");
 const Database = require("./config/database");
 const decodeToken = require("./middlewares/auth/decodeToken");
+const { refreshToken } = require("./controllers/user.controller");
 
 const app = express();
 app.set("trust proxy", 1); // ✅ Fix Render proxy
@@ -23,7 +24,7 @@ app.set("trust proxy", 1); // ✅ Fix Render proxy
 app.use(cors({
   origin: true,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
@@ -51,22 +52,7 @@ app.get("/server-status", (req, res) => {
   res.status(200).json({ message: "Server is up and running!" });
 });
 
-app.post("/refresh-token", async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(400).json({ message: "Refresh token required" });
-    }
-    res.json({
-      accessToken: "nouveau_token_temp",
-      refreshToken: refreshToken,
-      result: { _id: "test", name: "Test User" }
-    });
-  } catch (error) {
-    console.error("Refresh token error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+app.post("/refresh-token", refreshToken);
 
 // Routes principales de l'API
 app.get("/search", decodeToken, search);
@@ -93,7 +79,15 @@ app.use((err, req, res, next) => {
 });
 
 // ==================== BASE DE DONNÉES ====================
-const db = new Database(process.env.MONGODB_URI, {
+// Remove BOM if present and trim the URI
+const getDbUri = () => {
+  const uri = process.env.MONGODB_URI || process.env["\uFEFFMONGODB_URI"];
+  return uri ? uri.trim() : "";
+};
+
+const dbUri = getDbUri();
+
+const db = new Database(dbUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

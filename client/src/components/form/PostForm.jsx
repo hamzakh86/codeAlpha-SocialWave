@@ -7,6 +7,7 @@ import {
 import InappropriatePostModal from "../modals/InappropriatePostModal";
 import TopicConflictModal from "../modals/TopicConflictModal";
 import EligibilityDetectionFailModal from "../modals/EligibilityDetectionFailModal";
+import { HiOutlinePhotograph, HiOutlineX } from "react-icons/hi";
 
 const PostForm = ({ communityId, communityName }) => {
   const dispatch = useDispatch();
@@ -32,6 +33,8 @@ const PostForm = ({ communityId, communityName }) => {
       confirmationToken: state.posts?.confirmationToken,
     })
   );
+
+  const userData = useSelector((state) => state.auth?.userData);
 
   const handleContentChange = (event) => {
     setFormData({
@@ -83,7 +86,9 @@ const PostForm = ({ communityId, communityName }) => {
     newPost.append("content", content);
     newPost.append("communityId", communityId);
     newPost.append("communityName", communityName);
-    newPost.append("file", file);
+    if (file) {
+      newPost.append("file", file);
+    }
 
     setFormData({
       ...formData,
@@ -145,97 +150,70 @@ const PostForm = ({ communityId, communityName }) => {
         confirmationToken={confirmationToken}
       />
 
-      <form onSubmit={handleSubmit} className="border-b bg-white p-6">
-        <div className="mb-4">
-          <label
-            htmlFor="content"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Share something with your community:
-          </label>
-          <textarea
-            className="w-full resize-none rounded-md border p-2"
-            name="content"
-            id="content"
-            value={formData.content}
-            onChange={handleContentChange}
-            minLength={10}
-            maxLength={3000}
-            required
+      <form onSubmit={handleSubmit} className="app-panel rounded-lg p-4 sm:p-5">
+        <div className="flex gap-3 sm:gap-4">
+          <img
+            src={userData?.avatar}
+            alt="Profile"
+            className="h-11 w-11 rounded-lg object-cover border-2 border-white dark:border-gray-800 shadow-sm sm:h-12 sm:w-12"
           />
-        </div>
-
-        <div className="mb-4">
-          <label
-            htmlFor="file"
-            className="mx-auto mt-6 flex cursor-pointer items-center rounded-lg border-2 border-dashed bg-white px-3 py-3 text-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-            <h2 className="mx-3 text-gray-400">Photo / Video</h2>
-            <input
-              name="file"
-              type="file"
-              id="file"
-              accept="image/*, video/*"
-              onChange={handleFileChange}
-              className="hidden"
+          <div className="w-full">
+            <textarea
+              className="app-focus min-h-[100px] w-full resize-none rounded-lg border border-transparent bg-gray-50 p-4 text-gray-900 transition-all duration-300 placeholder-gray-400 focus:border-primary-500 focus:bg-white dark:bg-gray-900/50 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-800"
+              name="content"
+              id="content"
+              placeholder={`Share something with ${communityName}...`}
+              value={formData.content}
+              onChange={handleContentChange}
+              maxLength={3000}
             />
-          </label>
-
-          {formData.file && (
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-gray-500">{formData.file.name}</p>
-              <button
-                type="button"
-                onClick={handleRemoveFile}
-                className="text-red-500 hover:text-red-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {formData.error && <p className="text-red-500">{formData.error}</p>}
+          </div>
         </div>
 
-        <button
-          className={`rounded bg-primary px-4 py-1 text-sm text-white hover:bg-blue-700 ${
-            formData.loading ? "cursor-not-allowed opacity-50" : ""
-          }`}
-          type="submit"
-          disabled={formData.loading || (!formData.content && !formData.file)}
-          style={{
-            display: formData.content || formData.file ? "block" : "none",
-          }}
-        >
-          {formData.loading ? "Processing..." : "Create post"}
-        </button>
+        <div className="mt-4 flex flex-col gap-3 pl-0 sm:flex-row sm:items-center sm:justify-between sm:pl-16">
+          <div className="flex items-center gap-4">
+            <label
+              htmlFor="file"
+              className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-primary-500 transition-colors duration-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              <HiOutlinePhotograph className="text-2xl" />
+              <span className="text-sm font-semibold hidden sm:inline">Photo/Video</span>
+              <input
+                name="file"
+                type="file"
+                id="file"
+                accept="image/*, video/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          <button
+            className={`rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-2 text-sm font-bold text-white shadow-md shadow-primary-500/25 transition-all duration-300 hover:from-primary-600 hover:to-primary-700 ${
+              formData.loading || (!formData.content && !formData.file) ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+            }`}
+            type="submit"
+            disabled={formData.loading || (!formData.content && !formData.file)}
+          >
+            {formData.loading ? "Posting..." : "Post"}
+          </button>
+        </div>
+
+        {formData.file && (
+          <div className="mt-4 flex items-center justify-between rounded-lg border border-primary-100 bg-primary-50 p-3 dark:border-primary-800/30 dark:bg-primary-900/20 sm:ml-16">
+            <p className="text-sm font-medium text-primary-700 dark:text-primary-300 truncate max-w-[200px] sm:max-w-xs">{formData.file.name}</p>
+            <button
+              type="button"
+              onClick={handleRemoveFile}
+              className="text-primary-500 hover:text-red-500 transition-colors"
+            >
+              <HiOutlineX className="text-xl" />
+            </button>
+          </div>
+        )}
+
+        {formData.error && <p className="mt-3 text-sm text-red-500 sm:ml-16">{formData.error}</p>}
       </form>
     </>
   );

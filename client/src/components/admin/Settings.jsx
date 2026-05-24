@@ -63,13 +63,13 @@ const Settings = () => {
   }
 
   return (
-    <div className="p-5 w-full border rounded-md bg-white mt-3">
-      <h2 className="font-semibold mb-4 border-b pb-2 text-center text-gray-700">
+    <div className="p-5 w-full border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white mt-3 transition-colors duration-300">
+      <h2 className="font-semibold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 text-center text-gray-700 dark:text-gray-200">
         Service Preferences
       </h2>
 
       {isSuccess && (
-        <div className="bg-green-100 text-green-800 p-2 mb-4 rounded">
+        <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 p-2 mb-4 rounded">
           Service Preferences updated successfully!
         </div>
       )}
@@ -90,17 +90,17 @@ const Settings = () => {
         <div>Category filtering service provider</div>
         <div className="ml-auto">
           <select
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
+            className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
             value={categoryFilteringServiceProvider}
             onChange={(e) =>
               setCategoryFilteringServiceProvider(e.target.value)
             }
           >
-            <option value="">Select a provider</option>
-            <option value="TextRazor">TextRazor</option>
-            <option value="InterfaceAPI">InterfaceAPI</option>
-            <option value="ClassifierAPI">ClassifierAPI</option>
-            <option value="disabled">Disabled</option>
+            <option value="" className="dark:bg-gray-850">Select a provider</option>
+            <option value="TextRazor" className="dark:bg-gray-850">TextRazor</option>
+            <option value="InterfaceAPI" className="dark:bg-gray-850">InterfaceAPI</option>
+            <option value="ClassifierAPI" className="dark:bg-gray-850">ClassifierAPI</option>
+            <option value="disabled" className="dark:bg-gray-850">Disabled</option>
           </select>
         </div>
       </div>
@@ -109,7 +109,7 @@ const Settings = () => {
         <div>Category filtering request timeout (ms)</div>
         <div className="ml-auto">
           <input
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
+            className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
             type="number"
             value={categoryFilteringRequestTimeout}
             min={0}
@@ -124,7 +124,7 @@ const Settings = () => {
 
       <div className="flex justify-end">
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-750 disabled:opacity-50"
           onClick={handleUpdate}
           disabled={isUpdating}
         >

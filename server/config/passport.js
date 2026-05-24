@@ -8,25 +8,44 @@ const opts = {};
 const jwt = require("jsonwebtoken");
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = process.env.SECRET;
+opts.passReqToCallback = true;
 
 passport.use(
-  new JwtStrategy(opts, async function (jwt_payload, done) {
+  new JwtStrategy(opts, async function (req, jwt_payload, done) {
     try {
       const user = await User.findOne({ email: jwt_payload.email });
 
       if (user) {
-        const refreshTokenFromDB = await Token.findOne({
+        const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+        
+        // Find the exact token record corresponding to the current request's access token
+        let refreshTokenFromDB = await Token.findOne({
           user: user._id,
+          accessToken,
         });
+
+        // Fallback to checking by user if exact match is not found
+        if (!refreshTokenFromDB) {
+          refreshTokenFromDB = await Token.findOne({
+            user: user._id,
+          });
+        }
 
         if (!refreshTokenFromDB) {
           return done(null, false);
         }
 
-        const refreshPayload = jwt.verify(
-          refreshTokenFromDB.refreshToken,
-          process.env.REFRESH_SECRET
-        );
+        let refreshPayload;
+        try {
+          refreshPayload = jwt.verify(
+            refreshTokenFromDB.refreshToken,
+            process.env.REFRESH_SECRET
+          );
+        } catch (verifyError) {
+          // If the refresh token has expired or is signed with a different key, 
+          // it's an unauthorized session rather than a server error
+          return done(null, false);
+        }
 
         if (refreshPayload.email !== jwt_payload.email) {
           return done(null, false);

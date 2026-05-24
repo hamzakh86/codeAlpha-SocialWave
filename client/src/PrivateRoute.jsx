@@ -48,14 +48,23 @@ const PrivateRoute = ({ userData }) => {
   };
 
   return isAuthenticated(userData, accessToken) ? (
-    <div className="scroll-smooth">
+    <div className="scroll-smooth min-h-screen">
       <Navbar
         userData={userData}
         toggleLeftbar={toggleLeftbar}
         showLeftbar={showLeftbar}
       />
 
-      <div className="md:mx-auto md:grid md:w-10/12 md:grid-cols-4 md:gap-6">
+      {showLeftbar && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={toggleLeftbar}
+          className="fixed inset-0 z-20 bg-gray-950/30 backdrop-blur-[1px] md:hidden"
+        />
+      )}
+
+      <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 pb-10 md:grid-cols-4 md:gap-6 md:px-6">
         <Leftbar showLeftbar={showLeftbar} />
 
         <Outlet />
@@ -67,7 +76,7 @@ const PrivateRoute = ({ userData }) => {
             <Rightbar />
           )
         ) : null}
-      </div>
+      </main>
     </div>
   ) : (
     <Navigate to="/signin" />

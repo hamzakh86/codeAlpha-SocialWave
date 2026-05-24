@@ -36,8 +36,8 @@ const PostView = ({ post, userData }) => {
   } = post;
 
   useEffect(() => {
-    dispatch(getCommunityAction(community.name)).then(() => setLoading(false));
-  }, [dispatch, community.name, loading]);
+    dispatch(getCommunityAction(community.name)).finally(() => setLoading(false));
+  }, [dispatch, community.name]);
 
   const [showModal, setShowModal] = useState(false);
   const toggleModal = (value) => {
@@ -64,107 +64,111 @@ const PostView = ({ post, userData }) => {
   }
 
   return (
-    <div className="main-section border p-5 bg-white rounded-lg shadow-md">
-      <p className="border border-dashed border-primary cursor-pointer px-2 py-2 w-7 h-7 flex justify-center items-center mb-3 rounded-full">
+    <article className="main-section app-panel rounded-lg p-4 sm:p-5">
+      <button
+        type="button"
+        aria-label="Go back"
+        className="app-focus mb-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-primary-100 text-primary-600 dark:border-primary-800/40 dark:text-primary-300"
+        onClick={() => navigate(location.state?.from || "/")}
+      >
         <IoIosArrowBack
-          className="text-primary text-lg font-semibold"
-          onClick={() => navigate(location.state?.from || "/")}
+          className="text-lg font-semibold"
         />
-      </p>
+      </button>
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <img
-            className="rounded-full overflow-hidden w-12 h-12 object-cover"
+            className="h-12 w-12 rounded-lg object-cover"
             src={user.avatar}
             alt="user avatar"
             loading="lazy"
           />
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             {userData._id === user._id ? (
-              <Link to="/profile" className="text-lg font-semibold">
+              <Link to="/profile" className="truncate text-lg font-semibold text-gray-900 transition-colors hover:text-primary-500 dark:text-white">
                 {user.name}
               </Link>
             ) : (
-              <Link to={`/user/${user._id}`} className="text-lg font-semibold">
+              <Link to={`/user/${user._id}`} className="truncate text-lg font-semibold text-gray-900 transition-colors hover:text-primary-500 dark:text-white">
                 {user.name}
               </Link>
             )}
             <Link
               to={`/community/${community.name}`}
-              className="text-xs text-gray-500"
+              className="truncate text-xs font-medium text-primary-500"
             >
               {community.name}
             </Link>
           </div>
         </div>
 
-        <span className="text-gray-500 text-sm self-center">{dateTime}</span>
+        <span className="shrink-0 self-center text-xs text-gray-500 dark:text-gray-400">{dateTime}</span>
       </div>
 
       <div className="mb-4">
-        <p className="my-2">{content}</p>
-        <div className="flex justify-center">
+        <p className="my-3 whitespace-pre-wrap break-words leading-relaxed text-gray-800 dark:text-gray-200">{content}</p>
+        {fileUrl && <div className="overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900/50">
           {fileUrl && fileType === "image" ? (
             <PhotoProvider
               overlayRender={() => (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-10 text-white px-3 py-2">
-                  <p className="text-xs">{user.name}</p>
-                  <p className="text-xs">{community.name}</p>
-                  <p className="text-xs">{dateTime}</p>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12 text-white">
+                  <p className="text-sm font-bold">{user.name}</p>
+                  <p className="text-xs text-primary-300">{community.name}</p>
+                  <p className="mt-1 text-xs opacity-75">{dateTime}</p>
                 </div>
               )}
             >
               <PhotoView src={fileUrl}>
-                <div className="w-full aspect-w-1 aspect-h-1">
+                <div className="w-full cursor-zoom-in">
                   <img
                     src={fileUrl}
                     alt={content}
                     loading="lazy"
-                    className="cursor-pointer object-cover rounded-md"
+                    className="max-h-[720px] w-full object-cover"
                   />
                 </div>
               </PhotoView>
             </PhotoProvider>
           ) : (
             fileUrl && (
-              <div className="w-full aspect-w-16 aspect-h-9">
+              <div className="w-full">
                 <video
-                  className="block mx-auto rounded-md focus:outline-none"
+                  className="mx-auto max-h-[720px] w-full bg-black/5 object-contain focus:outline-none dark:bg-black/20"
                   src={fileUrl}
                   controls
                 />
               </div>
             )
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
           <Like post={post} />
-          <button className="flex items-center space-x-1">
+          <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-500 dark:text-gray-400 dark:hover:bg-gray-800">
             <HiOutlineChatBubbleOvalLeft className="text-2xl" />
-            <span className="text-lg">{comments.length}</span>
+            <span>{comments.length}</span>
           </button>
         </div>
         <div className="flex items-center space-x-2">
           <Save postId={post._id} />
           <Tooltip text="Saved by" className="items-center">
-            <div className="flex items-center">
+            <div className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-semibold text-gray-500 dark:text-gray-400">
               <HiOutlineArchiveBox className="text-2xl" />
               {savedByCount}
             </div>
           </Tooltip>
           {isReportedPost ? (
             <Tooltip text="Reported" className="items-center">
-              <button disabled className="text-green-500">
+              <button disabled className="rounded-lg p-2 text-green-500">
                 <VscReport className="text-2xl" />
               </button>
             </Tooltip>
           ) : (
             <Tooltip text="Report">
-              <button onClick={handleReportClick}>
+              <button onClick={handleReportClick} className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-500 dark:text-gray-400 dark:hover:bg-gray-800">
                 <VscReport className="text-2xl" />
               </button>
             </Tooltip>
@@ -173,7 +177,7 @@ const PostView = ({ post, userData }) => {
             <Tooltip text="Delete">
               <button
                 onClick={() => toggleModal(true)}
-                className="text-red-500"
+                className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
               >
                 <HiOutlineArchiveBox className="text-2xl" />
               </button>
@@ -187,7 +191,7 @@ const PostView = ({ post, userData }) => {
         showModal={showModal}
         postId={post._id}
         onClose={() => toggleModal(false)}
-        prevPath={location.state.from || "/"}
+        prevPath={location.state?.from || "/"}
       />
 
       <ReportPostModal
@@ -201,7 +205,7 @@ const PostView = ({ post, userData }) => {
       <div>
         <CommentForm communityId={community._id} postId={post._id} />
       </div>
-    </div>
+    </article>
   );
 };
 

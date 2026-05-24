@@ -67,6 +67,7 @@ const PublicProfile = () => {
   const {
     name,
     avatar,
+    cover,
     location: userLocation,
     bio,
     role,
@@ -86,7 +87,7 @@ const PublicProfile = () => {
     <button
       onClick={onClick}
       type="button"
-      className={`absolute bottom-0 right-0 h-9 w-9 rounded-full border px-2 py-2 text-sm font-semibold ${color} bg-white`}
+      className={`app-focus absolute bottom-0 right-0 grid h-10 w-10 place-items-center rounded-lg border text-sm font-semibold shadow-md ${color} bg-white dark:bg-gray-900`}
       disabled={loading}
     >
       {loading ? (
@@ -119,98 +120,112 @@ const PublicProfile = () => {
 
   return (
     <div className="main-section">
-      <div className="rounded border bg-white px-6 py-6">
-        <div className="flex flex-col items-center justify-center bg-white py-6">
-          <div className="relative">
-            <img
-              className="mr-4 h-20 w-20 rounded-full object-cover"
-              src={avatar}
-              alt="Profile"
-              loading="lazy"
-            />
-            <UnfollowButton
-              loading={unfollowLoading}
-              onClick={() => handleUnfollow(publicUserId)}
-              name={name}
-            />
-            {!isModerator && !isFollowing && (
-              <FollowButton
-                loading={followLoading}
-                onClick={() => handleFollow(publicUserId)}
+      <div className="app-panel mb-5 overflow-hidden rounded-lg">
+        <div
+          className="relative h-36 bg-gradient-to-r from-primary-600 to-accent-500 bg-cover bg-center transition-all duration-300"
+          style={cover ? { backgroundImage: `url(${cover})` } : {}}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-950/50 to-transparent"></div>
+        </div>
+
+        <div className="relative px-5 pb-6 sm:px-6">
+          <div className="flex flex-col items-center -mt-16">
+            <div className="relative">
+              <img
+                className="h-32 w-32 rounded-lg object-cover border-4 border-white dark:border-gray-900 shadow-xl"
+                src={avatar}
+                alt="Profile"
+                loading="lazy"
+              />
+              <UnfollowButton
+                loading={unfollowLoading}
+                onClick={() => handleUnfollow(publicUserId)}
                 name={name}
               />
-            )}
+              {!isModerator && !isFollowing && (
+                <FollowButton
+                  loading={followLoading}
+                  onClick={() => handleFollow(publicUserId)}
+                  name={name}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="text-center mt-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize tracking-tight">
+              {name}
+            </h1>
+            <p className="mt-1 flex items-center justify-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+              <CiLocationOn className="text-accent-500 text-lg font-bold" />
+              {userLocation === "" ? "Location unknown" : userLocation}
+            </p>
+            {role === "moderator" ? (
+              <p className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400">
+                Moderator
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="app-panel rounded-lg p-5">
+        <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-900/60 dark:text-gray-300">
+          {bio || `${name} has not added a bio yet.`}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-gray-100 p-3 dark:border-gray-800">
+            <AiOutlineFieldTime className="mb-2 text-xl text-primary-500" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">Joined</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{joinedOn}</p>
+          </div>
+          <div className="rounded-lg border border-gray-100 p-3 dark:border-gray-800">
+            <HiOutlineDocumentText className="mb-2 text-xl text-primary-500" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">Posts</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{totalPosts}</p>
+          </div>
+          <div className="rounded-lg border border-gray-100 p-3 dark:border-gray-800">
+            <FiUsers className="mb-2 text-xl text-primary-500" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">Communities</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{totalCommunities}</p>
+          </div>
+          <div className="rounded-lg border border-gray-100 p-3 dark:border-gray-800">
+            <FiUser className="mb-2 text-xl text-primary-500" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">Following</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{totalFollowing}</p>
           </div>
         </div>
 
-        <div>
-          <h1 className="mt-3 text-center text-lg font-bold capitalize">
-            {name}
-          </h1>
-          <p className="ga-2 flex items-center justify-center text-center text-gray-500">
-            <CiLocationOn className="text-lg" />
-            {userLocation === "" ? "N/A" : userLocation}
-          </p>
-          {role === "moderator" ? (
-            <p className="rounded-md bg-sky-200 px-2 py-1 text-center text-sm font-semibold text-sky-700">
-              Moderator
-            </p>
-          ) : null}
-        </div>
-        <div>
-          <p>{bio}</p>
-          <p className="flex items-center gap-2">
-            <AiOutlineFieldTime />
-            Joined on {joinedOn}
-          </p>
-          <p className="flex items-center gap-2">
-            <HiOutlineDocumentText />
-            {totalPosts} posts
-          </p>
-          <p className="flex items-center gap-2">
-            <FiUsers />
-            {totalCommunities === 0
-              ? "Not a member of any communities"
-              : totalCommunities === 1
-              ? "1 community"
-              : `${totalCommunities} communities`}
-          </p>
-          <p className="flex items-center gap-2">
-            <FiUser />
-            {totalFollowing} following
-          </p>
-        </div>
-
-        <p className="flex items-center gap-2">
-          <HiOutlineDocumentText />
-          {postsLast30Days} {postsLast30Days === 1 ? "post" : "posts"} in last
-          30 days
+        <p className="mt-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <HiOutlineDocumentText className="text-primary-500" />
+          {postsLast30Days} {postsLast30Days === 1 ? "post" : "posts"} in the last 30 days
         </p>
 
         {isFollowing && role !== "moderator" ? (
           <>
             {totalFollowers === 1 ? (
-              <p className="flex items-center gap-2">
-                <FiUser />
+              <p className="mt-3 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <FiUser className="text-primary-500" />
                 Followed by you
               </p>
             ) : (
-              <p className="flex items-center gap-2">
-                <FiUser />
+              <p className="mt-3 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <FiUser className="text-primary-500" />
                 {`Followed by you and `}
                 <span className="font-semibold">
                   {totalFollowers - 1} others
                 </span>
               </p>
             )}
-            <p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
               You are following
-              <span className="font-semibold text-sky-700"> {name} </span>
+              <span className="font-semibold text-primary-600 dark:text-primary-300"> {name} </span>
               since {followingSince}
             </p>
           </>
         ) : (
-          <p>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
             {role === "moderator" ? null : totalFollowers === 1 ? (
               <span className="font-semibold">{totalFollowers} follower</span>
             ) : (
@@ -220,14 +235,14 @@ const PublicProfile = () => {
         )}
 
         {commonCommunities?.length === 0 ? (
-          <p>You have no communities in common.</p>
+          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">You have no communities in common.</p>
         ) : (
-          <p>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
             You both are members of{" "}
             {commonCommunities?.slice(0, 1).map((c) => (
               <Fragment key={c._id}>
                 <Link
-                  className="font-bold text-sky-700 hover:underline"
+                  className="font-bold text-primary-600 hover:underline dark:text-primary-300"
                   to={`/community/${c.name}`}
                 >
                   {c.name}
@@ -254,14 +269,14 @@ const PublicProfile = () => {
             )}
           </p>
         )}
-        <div className="flex flex-col">
-          <p className="mt-2 font-semibold">Interests </p>
+        <div className="mt-5 flex flex-col">
+          <p className="mb-2 font-semibold text-gray-900 dark:text-white">Interests</p>
           {interests ? (
             <div className="flex flex-wrap gap-2">
               {interests.split(",").map((interest, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center rounded-lg border border-primary-100 bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700 dark:border-primary-800/30 dark:bg-primary-500/10 dark:text-primary-300"
                 >
                   {interest.trim()}
                 </span>

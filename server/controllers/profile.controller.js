@@ -138,6 +138,7 @@ const getPublicUser = async (req, res) => {
     const responseData = {
       name: user.name,
       avatar: user.avatar,
+      cover: user.cover,
       location: user.location,
       bio: user.bio,
       role: user.role,

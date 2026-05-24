@@ -190,6 +190,7 @@ const signin = async (req, res, next) => {
         email: existingUser.email,
         role: existingUser.role,
         avatar: existingUser.avatar,
+        cover: existingUser.cover,
       },
     });
   } catch (err) {
@@ -441,17 +442,31 @@ const updateInfo = async (req, res) => {
       });
     }
 
-    const { location, interests, bio } = req.body;
+    const { name, location, interests, bio } = req.body;
 
+    if (name) {
+      user.name = name;
+    }
     user.location = location;
     user.interests = interests;
     user.bio = bio;
 
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        const fileUrl = `${req.protocol}://${req.get("host")}/assets/userAvatars/${
+          file.filename
+        }`;
+        if (file.fieldname === "avatar") {
+          user.avatar = fileUrl;
+        } else if (file.fieldname === "cover") {
+          user.cover = fileUrl;
+        }
+      });
+    }
+
     await user.save();
 
-    res.status(200).json({
-      message: "User info updated successfully",
-    });
+    res.status(200).json(user);
   } catch (err) {
     res.status(500).json({
       message: "Error updating user info",

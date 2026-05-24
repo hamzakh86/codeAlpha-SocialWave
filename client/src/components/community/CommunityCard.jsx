@@ -1,7 +1,9 @@
 import { useState } from "react";
 import JoinModal from "../modals/JoinModal";
 import placeholder from "../../assets/placeholder.png";
-import { MdOutlineGroupAdd } from "react-icons/md";
+import { MdOutlineGroupAdd, MdExplore } from "react-icons/md";
+import { IoMdPeople } from "react-icons/io";
+
 const CommunityCard = ({ community }) => {
   const [joinModalVisibility, setJoinModalVisibility] = useState({});
 
@@ -12,28 +14,39 @@ const CommunityCard = ({ community }) => {
     }));
   };
   return (
-    <div className="px-3 py-3 rounded-md border bg-white shadow-2xl shadow-[#f2f5fc] flex justify-between">
-      <div className="w-full flex items-start">
-        <img
-          className="object-cover rounded-full w-10 h-10 mr-4"
-          src={community.banner || placeholder}
-          alt="community banner"
-          loading="lazy"
-        />
-        <div className="">
-          <h4 className="text-base font-semibold line-clamp-1">{community.name}</h4>
-          <p className="text-gray-700 ">
+    <div className="bg-white dark:bg-background-dark/80 backdrop-blur-md p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 flex justify-between items-center group">
+      <div className="flex items-center gap-4 overflow-hidden">
+        <div className="relative flex-shrink-0">
+          <img
+            className="object-cover rounded-xl w-14 h-14 shadow-sm group-hover:scale-105 transition-transform duration-300"
+            src={community.banner || placeholder}
+            alt={`${community.name} banner`}
+            loading="lazy"
+          />
+          <div className="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-0.5">
+            <div className="bg-primary-100 dark:bg-primary-900/50 text-primary-500 rounded-full p-1">
+              <MdExplore className="text-xs" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col min-w-0">
+          <h4 className="text-[16px] font-bold text-gray-900 dark:text-white truncate group-hover:text-primary-500 transition-colors">
+            {community.name}
+          </h4>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+            <IoMdPeople className="text-primary-400" />
             {community.members.length} members
           </p>
         </div>
       </div>
 
-      <div className="">
+      <div className="flex-shrink-0 ml-4">
         <button
           onClick={() => toggleJoinModal(community._id, true)}
-          className="px-2.5 py-2.5 bg-primary shadow-2xl shadow-[#F3F8FF] hover:bg-transparent group hover:border rounded-xl hover:border-primary transition duration-300"
+          className="flex items-center justify-center w-10 h-10 bg-primary-50 dark:bg-primary-500/10 hover:bg-primary-500 dark:hover:bg-primary-500 rounded-full text-primary-600 dark:text-primary-400 hover:text-white dark:hover:text-white transition-all duration-300 group-hover:shadow-md group-hover:shadow-primary-500/20"
+          title="Join Community"
         >
-          <MdOutlineGroupAdd className="text-lg text-white group-hover:text-primary" />
+          <MdOutlineGroupAdd className="text-xl" />
         </button>
         <JoinModal
           show={joinModalVisibility[community._id] || false}

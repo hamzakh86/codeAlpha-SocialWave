@@ -4,11 +4,25 @@ const MAX_LENGTH = 3000;
 
 const postValidator = [
   body("content")
-    .isLength({ min: 10 })
-    .withMessage("Your post is too short. Share more of your thoughts!")
-    .isLength({ max: MAX_LENGTH })
-    .withMessage("Post cannot exceed 3000 characters.")
-    .trim(),
+    .custom((value, { req }) => {
+      const content = typeof value === "string" ? value.trim() : "";
+      const hasFile = !!req.fileUrl;
+
+      if (!content && !hasFile) {
+        throw new Error("Please enter a message or select a file.");
+      }
+
+      if (content && content.length < 3) {
+        throw new Error("Your post is too short. Share more of your thoughts!");
+      }
+
+      if (content.length > MAX_LENGTH) {
+        throw new Error("Post cannot exceed 3000 characters.");
+      }
+
+      req.body.content = content;
+      return true;
+    }),
 ];
 
 const commentValidator = [

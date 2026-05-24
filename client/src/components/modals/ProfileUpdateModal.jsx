@@ -1,12 +1,13 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   getUserAction,
   updateUserAction,
 } from "../../redux/actions/userActions";
+import { setUserData } from "../../redux/actions/authActions";
 import { useDispatch } from "react-redux";
 import ButtonLoadingSpinner from "../loader/ButtonLoadingSpinner";
-import { FiUser, FiMapPin, FiEdit } from "react-icons/fi";
+import { FiUser, FiMapPin, FiEdit, FiCamera, FiImage } from "react-icons/fi";
 
 const suggestedInterests = [
   "🎨 Art",
@@ -35,28 +36,97 @@ const ProfileUpdateModal = ({ user, isOpen, onClose }) => {
   const dispatch = useDispatch();
 
   const [isUpdating, setIsUpdating] = useState(false);
+  const [name, setName] = useState(user.name ? user.name : "");
   const [bio, setBio] = useState(user.bio ? user.bio : "");
   const [location, setLocation] = useState(user.location ? user.location : "");
   const [interests, setInterests] = useState(
     user.interests ? user.interests : ""
   );
+  
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(user.avatar ? user.avatar : "");
+  const [coverPreview, setCoverPreview] = useState(user.cover ? user.cover : "");
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(user.name ? user.name : "");
+      setBio(user.bio ? user.bio : "");
+      setLocation(user.location ? user.location : "");
+      setInterests(user.interests ? user.interests : "");
+      setAvatarFile(null);
+      setCoverFile(null);
+      setAvatarPreview(user.avatar ? user.avatar : "");
+      setCoverPreview(user.cover ? user.cover : "");
+    }
+  }, [isOpen, user]);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleCoverChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleUpdateProfile = async () => {
     setIsUpdating(true);
 
-    const formData = {
-      bio,
-      location,
-      interests,
-    };
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("bio", bio);
+    formData.append("location", location);
+    formData.append("interests", interests);
+    if (avatarFile) {
+      formData.append("avatar", avatarFile);
+    }
+    if (coverFile) {
+      formData.append("cover", coverFile);
+    }
 
-    await dispatch(updateUserAction(user._id, formData));
-    await dispatch(getUserAction(user._id));
-    setBio("");
-    setLocation("");
-    setInterests("");
-    setIsUpdating(false);
-    onClose();
+    try {
+      const result = await dispatch(updateUserAction(user._id, formData));
+
+      // Mettre à jour localStorage directement avec les valeurs du formulaire
+      // (sans dépendre du format de réponse du serveur)
+      const profile = JSON.parse(localStorage.getItem("profile"));
+      if (profile) {
+        profile.user = {
+          ...profile.user,
+          name: name || profile.user.name,
+          bio: bio,
+          location: location,
+          interests: interests,
+        };
+
+        // Si le serveur a retourné un objet utilisateur complet (serveur local),
+        // utiliser les URLs d'avatar/cover du serveur
+        if (result && result._id) {
+          if (result.avatar) profile.user.avatar = result.avatar;
+          if (result.cover) profile.user.cover = result.cover;
+        }
+
+        localStorage.setItem("profile", JSON.stringify(profile));
+        dispatch(setUserData(profile.user));
+      }
+
+      // Rafraîchir les données complètes (posts, stats, etc.) depuis le serveur
+      dispatch(getUserAction(user._id));
+
+      onClose();
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -91,56 +161,125 @@ const ProfileUpdateModal = ({ user, isOpen, onClose }) => {
             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div className="inline-block w-full transform overflow-hidden rounded-md bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:p-6 sm:align-middle md:max-w-xl">
+            <div className="inline-block w-full transform rounded-md bg-white dark:bg-gray-800 px-4 pb-4 pt-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:p-5 sm:align-middle md:max-w-xl overflow-y-auto max-h-[90vh]">
               <div className="w-full">
                 <div className="mt-3 text-center sm:mt-0 sm:text-left">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
+                    className="text-lg font-medium leading-6 text-gray-900 dark:text-white font-bold"
                   >
                     Update Profile
                   </Dialog.Title>
 
-                  <div className="mt-4">
+                  {/* Profile Picture Upload */}
+                  <div className="mt-2">
                     <div className="flex items-center space-x-2">
-                      <FiUser className="text-gray-600" />
-                      <label className="block text-sm font-medium text-gray-700">
+                      <FiCamera className="text-gray-600 dark:text-gray-400" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Profile Picture
+                      </label>
+                    </div>
+                    <div className="mt-2 flex items-center space-x-4">
+                      {avatarPreview && (
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar preview"
+                          className="h-12 w-12 rounded-full object-cover border"
+                        />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-200 dark:hover:file:bg-gray-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cover Photo Upload */}
+                  <div className="mt-3">
+                    <div className="flex items-center space-x-2">
+                      <FiImage className="text-gray-600 dark:text-gray-400" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Cover Photo
+                      </label>
+                    </div>
+                    <div className="mt-2 flex flex-col space-y-2">
+                      {coverPreview && (
+                        <div
+                          className="h-20 w-full rounded-md bg-cover bg-center border"
+                          style={{ backgroundImage: `url(${coverPreview})` }}
+                        />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        className="text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-200 dark:hover:file:bg-gray-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Name Input */}
+                  <div className="mt-3">
+                    <div className="flex items-center space-x-2">
+                      <FiUser className="text-gray-600 dark:text-gray-400" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Full Name
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      className="mt-1 block w-full rounded-md border-b border-gray-300 dark:border-gray-600 bg-transparent dark:text-white p-2 outline-none"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Bio Input */}
+                  <div className="mt-3">
+                    <div className="flex items-center space-x-2">
+                      <FiUser className="text-gray-600 dark:text-gray-400 animate-pulse" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Bio
                       </label>
                     </div>
                     <input
                       type="text"
-                      className="mt-1 block w-full rounded-md border-b border-gray-300 p-2 outline-none"
+                      className="mt-1 block w-full rounded-md border-b border-gray-300 dark:border-gray-600 bg-transparent dark:text-white p-2 outline-none"
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                     />
                   </div>
 
-                  <div className="mt-4">
+                  {/* Location Input */}
+                  <div className="mt-3">
                     <div className="flex items-center space-x-2">
-                      <FiMapPin className="text-gray-600" />
-                      <label className="block text-sm font-medium text-gray-700">
+                      <FiMapPin className="text-gray-600 dark:text-gray-400" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Location
                       </label>
                     </div>
                     <input
                       type="text"
-                      className="mt-1 block w-full rounded-md border-b border-gray-300 p-2 outline-none"
+                      className="mt-1 block w-full rounded-md border-b border-gray-300 dark:border-gray-600 bg-transparent dark:text-white p-2 outline-none"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                     />
                   </div>
 
-                  <div className="mt-4">
+                  {/* Interests Input */}
+                  <div className="mt-3">
                     <div className="flex items-center space-x-2">
-                      <FiEdit className="text-gray-600" />
-                      <label className="block text-sm font-medium text-gray-700">
+                      <FiEdit className="text-gray-600 dark:text-gray-400" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Interests (Separated by comma)
                       </label>
                     </div>
                     <input
                       type="text"
-                      className="mt-1 block w-full rounded-md border-b border-gray-300 p-2 outline-none"
+                      className="mt-1 block w-full rounded-md border-b border-gray-300 dark:border-gray-600 bg-transparent dark:text-white p-2 outline-none"
                       value={interests}
                       onChange={(e) => {
                         if (e.target.value.length <= 50) {
@@ -157,7 +296,7 @@ const ProfileUpdateModal = ({ user, isOpen, onClose }) => {
                             key={index}
                             type="button"
                             disabled={isUpdating || interests.length >= 50}
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             onClick={() =>
                               setInterests(
                                 interests === ""
@@ -194,7 +333,7 @@ const ProfileUpdateModal = ({ user, isOpen, onClose }) => {
                 </button>
                 <button
                   type="button"
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
                   onClick={onClose}
                 >
                   Cancel

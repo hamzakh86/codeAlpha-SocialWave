@@ -12,16 +12,16 @@ const Like = ({ post }) => {
   const userData = useSelector((state) => state.auth?.userData);
 
   const [likeState, setLikeState] = useState({
-    liked: post.likes.includes(userData._id),
+    liked: post.likes.includes(userData?._id),
     localLikes: likes.length,
   });
 
   useEffect(() => {
     setLikeState({
-      liked: post.likes.includes(userData._id),
+      liked: post.likes.includes(userData?._id),
       localLikes: post.likes.length,
     });
-  }, [post.likes, userData._id]);
+  }, [post.likes, userData?._id]);
 
   const toggleLike = async (e) => {
     e.preventDefault();
@@ -37,15 +37,15 @@ const Like = ({ post }) => {
 
     try {
       if (likeState.liked) {
-        dispatch(unlikePostAction(_id));
+        await dispatch(unlikePostAction(_id));
       } else {
-        dispatch(likePostAction(_id));
+        await dispatch(likePostAction(_id));
       }
     } catch (error) {
       setLikeState((prevState) => ({
         ...prevState,
         liked: !prevState.liked,
-        localLikes: optimisticLikes,
+        localLikes: likeState.localLikes,
       }));
     }
   };
@@ -53,7 +53,12 @@ const Like = ({ post }) => {
   return (
     <button
       onClick={toggleLike}
-      className="flex items-center cursor-pointer gap-1 text-lg"
+      className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors ${
+        likeState.liked
+          ? "bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+          : "text-gray-500 hover:bg-gray-100 hover:text-primary-500 dark:text-gray-400 dark:hover:bg-gray-800"
+      }`}
+      aria-label={likeState.liked ? "Unlike post" : "Like post"}
     >
       {likeState.liked ? (
         <HiHandThumbUp className="text-2xl" />

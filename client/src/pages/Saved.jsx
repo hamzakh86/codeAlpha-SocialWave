@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import SavedPost from "../components/post/SavedPost";
 import NoSavedPost from "../assets/nopost.jpg";
+import CommonLoading from "../components/loader/CommonLoading";
 
 const Saved = () => {
   const dispatch = useDispatch();
@@ -14,24 +15,33 @@ const Saved = () => {
   const savedPosts = useSelector((state) => state.posts?.savedPosts);
 
   return (
-    <div className="main-section bg-white border">
-      <div className="flex flex-col mb-3">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4 text-center border-b py-3">
+    <div className="main-section">
+      <div className="flex flex-col">
+        <div className="app-panel mb-5 rounded-lg p-5">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Your saved posts
-        </h2>
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Everything you saved for quick access.
+          </p>
+        </div>
 
-        {savedPosts && savedPosts.length > 0 ? (
-          <div className="flex flex-col items-center px-5 py-5 ">
-            {savedPosts.reverse().map((post) => (
+        {!savedPosts ? (
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <CommonLoading />
+          </div>
+        ) : savedPosts.length > 0 ? (
+          <div className="flex flex-col">
+            {[...savedPosts].reverse().map((post) => (
               <SavedPost key={post._id} post={post} />
             ))}
           </div>
         ) : (
-          <div className="text-center flex justify-center items-center flex-col">
-            <p className="text-gray-500 py-5">
+          <div className="app-panel flex flex-col items-center justify-center rounded-lg p-8 text-center">
+            <p className="pb-5 text-gray-500 dark:text-gray-400">
               You haven't saved any post yet.
             </p>
-            <img loading="lazy" src={NoSavedPost} alt="no post" />
+            <img loading="lazy" src={NoSavedPost} alt="no post" className="w-full max-w-sm rounded-lg object-cover" />
           </div>
         )}
       </div>

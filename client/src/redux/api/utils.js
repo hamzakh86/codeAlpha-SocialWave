@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// URL forcée pour la production sur Render
-const BASE_URL = "https://codealpha-socialwave.onrender.com";
+const DEFAULT_API_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://codealpha-socialwave.onrender.com";
+const BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
 
 const authInterceptor = (req) => {
   const accessToken = JSON.parse(localStorage.getItem("profile"))?.accessToken;
@@ -23,9 +27,8 @@ export const API = axios.create({
   baseURL: BASE_URL,
 });
 
-// MODIFICATION: ADMIN_API utilise maintenant BASE_URL au lieu de ADMIN_URL
 export const ADMIN_API = axios.create({
-  baseURL: BASE_URL,  // Changé ici - plus de /admin
+  baseURL: BASE_URL,
 });
 
 export const COMMUNITY_API = axios.create({
@@ -42,7 +45,10 @@ COMMUNITY_API.interceptors.request.use((req) => {
 export const handleApiError = async (error) => {
   try {
     const errorMessage =
-      error.response?.data?.message || "An unexpected error occurred.";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "An unexpected error occurred.";
     const data = null;
     return { error: errorMessage, data };
   } catch (err) {

@@ -27,20 +27,25 @@ const PublicPost = ({ publicUserId }) => {
   }
 
   return (
-    <div className="my-4">
-      <h2 className="text-lg font-bold my-3 border-b pb-2">Posts</h2>
+    <section className="my-5">
+      <div className="app-panel mb-4 rounded-lg p-4">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Posts</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Recent posts visible from this profile.
+        </p>
+      </div>
       {publicPosts?.length === 0 ? (
-        <p className="text-center">
+        <p className="app-panel rounded-lg p-8 text-center text-gray-500 dark:text-gray-400">
           User has not posted anything yet. Check back later!
         </p>
       ) : (
-        <div className="">
+        <div>
           {publicPosts?.map((post) => (
             <Post key={post._id} post={post} />
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

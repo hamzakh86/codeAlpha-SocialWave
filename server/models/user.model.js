@@ -20,6 +20,9 @@ const userSchema = new Schema(
     avatar: {
       type: String,
     },
+    cover: {
+      type: String,
+    },
     followers: [
       {
         type: Schema.Types.ObjectId,

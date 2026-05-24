@@ -23,7 +23,7 @@ export const signUp = async (formData) => {
     return { error: null, data: res.data };
   } catch (error) {
     return {
-      error: error.response.data.errors,
+      error: error.response?.data?.errors || [error.message || "Unable to create account."],
       data: null,
     };
   }
@@ -31,7 +31,7 @@ export const signUp = async (formData) => {
 
 export const logout = async () => {
   try {
-    const res = await API.post("/users/logout", {
+    const res = await API.post("/users/logout", null, {
       headers: {
         "Content-Type": "application/json",
       },

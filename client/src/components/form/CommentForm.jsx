@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   addCommentAction,
-  getPostAction,
   getComPostsAction,
   getOwnPostAction,
   clearCommentFailAction,
@@ -26,13 +25,10 @@ const CommentForm = ({ communityId, postId }) => {
     };
     try {
       setIsLoading(true);
-      await dispatch(addCommentAction(postId, newComment));
-      await dispatch(getPostAction(postId));
+      const added = await dispatch(addCommentAction(postId, newComment));
+      if (!added) return;
       await dispatch(getOwnPostAction(postId));
-
-      setIsLoading(false);
       setContent("");
-
       await dispatch(getComPostsAction(communityId));
     } finally {
       setIsLoading(false);
@@ -60,10 +56,10 @@ const CommentForm = ({ communityId, postId }) => {
         contentType={"comment"}
       />
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/50">
         <div className="my-4">
           <textarea
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500 resize-none"
+            className="app-focus min-h-[92px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900 transition-colors focus:border-primary-500 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-100"
             name="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -74,13 +70,9 @@ const CommentForm = ({ communityId, postId }) => {
         </div>
         <div className="flex justify-end">
           <button
-            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+            className="app-focus rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
-            disabled={isLoading}
-            style={{
-              opacity: isLoading ? 0.5 : 1,
-              cursor: isLoading ? "not-allowed" : "pointer",
-            }}
+            disabled={isLoading || content.trim().length === 0}
           >
             {isLoading ? "Loading..." : "Comment"}
           </button>

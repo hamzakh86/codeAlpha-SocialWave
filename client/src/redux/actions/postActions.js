@@ -166,7 +166,7 @@ export const clearPostsAction = () => async (dispatch) => {
   });
 };
 
-export const getPostsAction = (limit, skip) => async (dispatch) => {
+export const getPostsAction = (limit = 10, skip = 0) => async (dispatch) => {
   try {
     const { error, data } = await api.getPosts(limit, skip);
 
@@ -223,7 +223,7 @@ export const getOwnPostAction = (id) => async (dispatch) => {
 };
 
 export const getComPostsAction =
-  (communityId, limit, skip) => async (dispatch) => {
+  (communityId, limit = 10, skip = 0) => async (dispatch) => {
     try {
       const { error, data } = await api.getComPosts(communityId, limit, skip);
 
@@ -376,10 +376,15 @@ export const addCommentAction = (postId, newComment) => async (dispatch) => {
           requiresAuth: true,
         },
       });
-      return;
+      return false;
     }
 
-    throw new Error(error);
+    if (error) {
+      throw new Error(error);
+    }
+
+    await dispatch(getPostAction(postId));
+    return true;
   } catch (error) {
     dispatch({
       type: types.ADD_COMMENT_FAIL,
@@ -388,6 +393,7 @@ export const addCommentAction = (postId, newComment) => async (dispatch) => {
         requiresAuth: true,
       },
     });
+    return false;
   }
 };
 

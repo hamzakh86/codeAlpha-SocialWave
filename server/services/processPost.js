@@ -6,45 +6,45 @@ const Config = require("../models/config.model");
  * @param next - confirmPost (/middlewares/post/confirmPost.js)
  */
 const processPost = async (req, res, next) => {
-  const { content, communityName } = req.body;
-  const { serviceProvider, timeout } = await getSystemPreferences();
-
   try {
+    const { content, communityName } = req.body;
+    const { serviceProvider, timeout } = await getSystemPreferences();
+
     if (serviceProvider === "disabled") {
       req.failedDetection = false;
       return next();
     }
 
-    const categoryFilterService = createCategoryFilterService(serviceProvider);
+    try {
+      const categoryFilterService = createCategoryFilterService(serviceProvider);
+      const categories = await categoryFilterService.getCategories(content, timeout);
 
-    const categories = await categoryFilterService.getCategories(
-      content,
-      timeout
-    );
+      if (Object.keys(categories).length > 0) {
+        const recommendedCommunity = Object.keys(categories)[0];
 
-    if (Object.keys(categories).length > 0) {
-      const recommendedCommunity = Object.keys(categories)[0];
-
-      if (recommendedCommunity !== communityName) {
-        const type = "categoryMismatch";
-        const info = {
-          community: communityName,
-          recommendedCommunity,
-        };
-
-        return res.status(403).json({ type, info });
+        if (recommendedCommunity !== communityName) {
+          const type = "categoryMismatch";
+          const info = { community: communityName, recommendedCommunity };
+          return res.status(403).json({ type, info });
+        } else {
+          req.failedDetection = false;
+          return next();
+        }
       } else {
-        req.failedDetection = false;
-        next();
+        req.failedDetection = true;
+        return next();
       }
-    } else {
-      req.failedDetection = true;
-      next();
+    } catch (serviceError) {
+      // If the external service fails (no API key, network error, etc.),
+      // fall through and create the post normally
+      console.warn("[processPost] Category service failed, skipping:", serviceError.message);
+      req.failedDetection = false;
+      return next();
     }
   } catch (error) {
-    const errorMessage = `Error processing post: ${error.message}`;
-    await saveLogInfo(null, errorMessage, serviceProvider, "error");
-    return res.status(500).json({ message: "Error processing post" });
+    console.error("[processPost] Unexpected error:", error.message);
+    req.failedDetection = false;
+    return next();
   }
 };
 

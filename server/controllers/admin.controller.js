@@ -8,6 +8,9 @@ const AdminToken = require("../models/token.admin.model");
 const Config = require("../models/config.model");
 const Community = require("../models/community.model");
 const User = require("../models/user.model");
+const mongoose = require("mongoose");
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /**
  * @route GET /admin/logs
@@ -202,6 +205,10 @@ const getCommunities = async (req, res) => {
 const getCommunity = async (req, res) => {
   try {
     const { communityId } = req.params;
+    if (!isValidObjectId(communityId)) {
+      return res.status(400).json({ message: "Invalid community id" });
+    }
+
     const community = await Community.findById(communityId)
       .select("_id name description banner moderators members")
       .populate("moderators", "_id name")
@@ -237,6 +244,15 @@ const getModerators = async (req, res) => {
 const addModerator = async (req, res) => {
   try {
     const { communityId, moderatorId } = req.query;
+    if (!isValidObjectId(communityId) || !isValidObjectId(moderatorId)) {
+      return res.status(400).json({ message: "Invalid community or moderator id" });
+    }
+
+    const moderator = await User.findOne({ _id: moderatorId, role: "moderator" });
+    if (!moderator) {
+      return res.status(404).json({ message: "Moderator not found" });
+    }
+
     const community = await Community.findById(communityId);
     if (!community) {
       return res.status(404).json({ message: "Community not found" });
@@ -247,12 +263,11 @@ const addModerator = async (req, res) => {
     if (existingModerator) {
       return res.status(400).json({ message: "Already a moderator" });
     }
-    community.moderators.push(moderatorId);
-    community.members.push(moderatorId);
+    community.moderators.addToSet(moderatorId);
+    community.members.addToSet(moderatorId);
     await community.save();
     res.status(200).json({ message: "Moderator added" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error adding moderator" });
   }
 };
@@ -260,6 +275,9 @@ const addModerator = async (req, res) => {
 const removeModerator = async (req, res) => {
   try {
     const { communityId, moderatorId } = req.query;
+    if (!isValidObjectId(communityId) || !isValidObjectId(moderatorId)) {
+      return res.status(400).json({ message: "Invalid community or moderator id" });
+    }
 
     const community = await Community.findById(communityId);
     if (!community) {

@@ -25,7 +25,7 @@ const MyCommunities = () => {
       return null;
     }
     return joinedCommunities.map((community) => (
-      <div key={community._id} className="main-section flex items-center">
+      <div key={community._id} className="flex items-center">
         <JoinedCommunityCard className="mb-5" community={community} />
       </div>
     ));
@@ -39,7 +39,25 @@ const MyCommunities = () => {
     );
   }
 
-  return <div className="main-section">{communityCards}</div>;
+  return (
+    <div className="main-section">
+      <div className="app-panel mb-5 rounded-lg p-5">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          My communities
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Your active spaces, grouped in one place.
+        </p>
+      </div>
+      {joinedCommunities?.length === 0 ? (
+        <div className="app-panel rounded-lg p-8 text-center text-gray-500 dark:text-gray-400">
+          You have not joined any communities yet.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{communityCards}</div>
+      )}
+    </div>
+  );
 };
 
 export default MyCommunities;

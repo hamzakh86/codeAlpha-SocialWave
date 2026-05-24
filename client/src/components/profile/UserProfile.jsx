@@ -40,17 +40,22 @@ const UserProfile = ({ userData }) => {
           <OwnProfileCard user={user} />
           <OwnInfoCard user={user} />
 
-          <h3 className="font-semibold text-center mb-4 text-gray-700 p-3 border-b">
-            Your most recent posts
-          </h3>
+          <div className="app-panel mb-4 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              Your recent posts
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Review what you have shared with your communities.
+            </p>
+          </div>
 
           {postToShow?.length === 0 ? (
-            <div className="text-center text-gray-700 flex justify-center items-center flex-col">
-              <p className="font-semibold py-5 text-gray-500">
+            <div className="app-panel flex flex-col items-center justify-center rounded-lg p-8 text-center">
+              <p className="pb-5 font-semibold text-gray-500 dark:text-gray-400">
                 You haven't posted anything yet
               </p>
               <img
-                className="max-w-md rounded-full"
+                className="w-full max-w-sm rounded-lg object-cover"
                 src={NoPost}
                 alt="no post"
               />

@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
-    "production": "node app.js"
+    "production": "node app.js",
+    "seed": "node scripts/seed-fake-data.js",
+    "clear-db": "node scripts/clear-database.js",
+    "create-admin-user": "node scripts/create-user-admin.js"
   },
   "author": "Neaz",
   "license": "ISC",

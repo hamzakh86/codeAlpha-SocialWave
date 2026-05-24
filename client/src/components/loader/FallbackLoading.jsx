@@ -2,8 +2,8 @@ import { PulseLoader } from "react-spinners";
 
 const FallbackLoading = () => {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <PulseLoader color="#008cff" />
+    <div className="flex h-screen items-center justify-center bg-background dark:bg-background-dark">
+      <PulseLoader color="#00bcd4" />
     </div>
   );
 };

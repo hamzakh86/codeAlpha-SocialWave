@@ -14,6 +14,7 @@ export const getUserAction = (id) => async (dispatch) => {
       type: types.GET_USER_SUCCESS,
       payload: data,
     });
+    return data;
   } catch (error) {
     dispatch({
       type: types.GET_USER_FAIL,
@@ -30,10 +31,14 @@ export const updateUserAction = (id, formData) => async (dispatch) => {
       throw new Error(error);
     }
 
-    dispatch({
-      type: types.GET_USER_SUCCESS,
-      payload: data,
-    });
+    // Only dispatch success if it's a valid user object, not a success message
+    if (data && (data._id || data.email)) {
+      dispatch({
+        type: types.GET_USER_SUCCESS,
+        payload: data,
+      });
+    }
+    return data;
   } catch (error) {
     dispatch({
       type: types.GET_USER_FAIL,

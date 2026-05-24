@@ -21,28 +21,33 @@ const Following = () => {
   }, [dispatch]);
 
   return (
-    <div className="main-section bg-white border">
+    <div className="main-section">
       {loading ? (
         <div className="flex items-center justify-center h-screen">
           <CommonLoading />
         </div>
       ) : (
         <div>
-          <h2 className="font-semibold text-gray-700 mb-4 text-center border-b py-3">
-            People you're following
-          </h2>
+          <div className="app-panel mb-5 rounded-lg p-5">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              People you're following
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Keep up with profiles that matter to your feed.
+            </p>
+          </div>
           {followingUsers?.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center px-3 py-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {followingUsers.map((user) => (
                 <PublicProfileCard key={user._id} user={user} />
               ))}
             </div>
           ) : (
-           <div className="text-center flex justify-center items-center flex-col">
-            <p className="text-gray-500 py-5">
+           <div className="app-panel flex flex-col items-center justify-center rounded-lg p-8 text-center">
+            <p className="pb-5 text-gray-500 dark:text-gray-400">
              You are not following anyone yet.
             </p>
-              <img src={noFollow} alt="no post" className="max-w-md" />
+              <img src={noFollow} alt="no follow" className="w-full max-w-sm rounded-lg object-cover" />
             </div>
           )}
         </div>

@@ -11,11 +11,13 @@ export const signInAction = (credential) => async (dispatch) => {
     dispatch({
       type: types.SIGN_IN_SUCCESS,
     });
+    return true;
   } catch (error) {
     dispatch({
       type: types.SIGN_IN_FAIL,
       payload: error.message,
     });
+    return false;
   }
 };
 
