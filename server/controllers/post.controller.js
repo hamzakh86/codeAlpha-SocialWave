@@ -13,6 +13,8 @@ const Report = require("../models/report.model");
 const PendingPost = require("../models/pendingPost.model");
 const fs = require("fs");
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const canAccessPost = async (postId, userId) => {
   if (!mongoose.Types.ObjectId.isValid(postId)) {
     return { allowed: false, status: 400, message: "Invalid post id" };
@@ -39,6 +41,44 @@ const canAccessPost = async (postId, userId) => {
   return { allowed: true, post };
 };
 
+const findPostById = async (postId) =>
+  await Post.findById(postId)
+    .populate("user", "name avatar")
+    .populate("community", "name")
+    .lean();
+
+const findCommentsByPostId = async (postId) =>
+  await Comment.find({ post: postId })
+    .sort({ createdAt: -1 })
+    .populate("user", "name avatar")
+    .lean();
+
+const formatComments = (comments) =>
+  comments.map((comment) => ({
+    ...comment,
+    createdAt: dayjs(comment.createdAt).fromNow(),
+  }));
+
+const countSavedPosts = async (postId) =>
+  await User.countDocuments({ savedPosts: postId });
+
+const findReportByPostAndUser = async (postId, userId) =>
+  await Report.findOne({ post: postId, reportedBy: userId });
+
+const populatePost = async (post) => {
+  const savedByCount = await User.countDocuments({
+    savedPosts: post._id,
+  });
+
+  return {
+    ...post.toObject(),
+    createdAt: dayjs(post.createdAt).fromNow(),
+    savedByCount,
+  };
+};
+
+// ─── Controllers ─────────────────────────────────────────────────────────────
+
 const createPost = async (req, res) => {
   try {
     const { communityId, content } = req.body;
@@ -57,12 +97,9 @@ const createPost = async (req, res) => {
       if (file) {
         const filePath = `./assets/userFiles/${file.filename}`;
         fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error(err);
-          }
+          if (err) console.error(err);
         });
       }
-
       return res.status(401).json({
         message: "Unauthorized to post in this community",
       });
@@ -88,9 +125,7 @@ const createPost = async (req, res) => {
 
     res.json(post);
   } catch (error) {
-    res.status(500).json({
-      message: "Error creating post",
-    });
+    res.status(500).json({ message: "Error creating post" });
   }
 };
 
@@ -108,13 +143,7 @@ const confirmPost = async (req, res) => {
     }
 
     const { user, community, content, fileUrl, fileType } = pendingPost;
-    const newPost = new Post({
-      user,
-      community,
-      content,
-      fileUrl,
-      fileType,
-    });
+    const newPost = new Post({ user, community, content, fileUrl, fileType });
 
     await PendingPost.findOneAndDelete({
       confirmationToken: { $eq: confirmationToken },
@@ -128,12 +157,9 @@ const confirmPost = async (req, res) => {
       .lean();
 
     post.createdAt = dayjs(post.createdAt).fromNow();
-
     res.json(post);
   } catch (error) {
-    res.status(500).json({
-      message: "Error publishing post",
-    });
+    res.status(500).json({ message: "Error publishing post" });
   }
 };
 
@@ -154,9 +180,7 @@ const rejectPost = async (req, res) => {
     await pendingPost.remove();
     res.status(201).json({ message: "Post rejected" });
   } catch (error) {
-    res.status(500).json({
-      message: "Error rejecting post",
-    });
+    res.status(500).json({ message: "Error rejecting post" });
   }
 };
 
@@ -171,14 +195,12 @@ const clearPendingPosts = async (req, res) => {
     date.setHours(date.getHours() - 1);
 
     await PendingPost.deleteMany({ createdAt: { $lte: date } });
-
     res.status(200).json({ message: "Pending posts cleared" });
   } catch (error) {
-    res.status(500).json({
-      message: "Error clearing pending posts",
-    });
+    res.status(500).json({ message: "Error clearing pending posts" });
   }
 };
+
 const getPost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -200,112 +222,73 @@ const getPost = async (req, res) => {
       });
     }
 
-    const comments = await findCommentsByPostId(postId);
+    // ✅ Paralléliser comments + savedByCount + report en un seul round-trip
+    const [comments, savedByCount, report] = await Promise.all([
+      findCommentsByPostId(postId),
+      countSavedPosts(postId),
+      findReportByPostAndUser(postId, userId),
+    ]);
 
     post.comments = formatComments(comments);
     post.dateTime = formatCreatedAt(post.createdAt);
     post.createdAt = dayjs(post.createdAt).fromNow();
-    post.savedByCount = await countSavedPosts(postId);
-
-    const report = await findReportByPostAndUser(postId, userId);
+    post.savedByCount = savedByCount;
     post.isReported = !!report;
 
     res.status(200).json(post);
   } catch (error) {
-    res.status(500).json({
-      message: "Error getting post",
-    });
+    res.status(500).json({ message: "Error getting post" });
   }
 };
-
-const findPostById = async (postId) =>
-  await Post.findById(postId)
-    .populate("user", "name avatar")
-    .populate("community", "name")
-    .lean();
-
-const findCommentsByPostId = async (postId) =>
-  await Comment.find({ post: postId })
-    .sort({ createdAt: -1 })
-    .populate("user", "name avatar")
-    .lean();
-
-const formatComments = (comments) =>
-  comments.map((comment) => ({
-    ...comment,
-    createdAt: dayjs(comment.createdAt).fromNow(),
-  }));
-
-const countSavedPosts = async (postId) =>
-  await User.countDocuments({ savedPosts: postId });
-
-const findReportByPostAndUser = async (postId, userId) =>
-  await Report.findOne({ post: postId, reportedBy: userId });
 
 const getPosts = async (req, res) => {
   try {
     const userId = req.userId;
     const { limit = 10, skip = 0 } = req.query;
 
-    const communities = await Community.find({
-      members: userId,
-    });
+    // ✅ distinct() directement, évite de mapper un tableau de documents
+    const communityIds = await Community.find({ members: userId }).distinct("_id");
 
-    const communityIds = communities.map((community) => community._id);
-
-    const posts = await Post.find({
-      community: {
-        $in: communityIds,
-      },
-    })
-      .sort({
-        createdAt: -1,
-      })
-      .populate("user", "name avatar")
-      .populate("community", "name")
-      .skip(parseInt(skip))
-      .limit(parseInt(limit))
-      .lean();
+    // ✅ Posts + count en parallèle
+    const [posts, totalPosts] = await Promise.all([
+      Post.find({ community: { $in: communityIds } })
+        .sort({ createdAt: -1 })
+        .populate("user", "name avatar")
+        .populate("community", "name")
+        .skip(parseInt(skip))
+        .limit(parseInt(limit))
+        .lean(),
+      Post.countDocuments({ community: { $in: communityIds } }),
+    ]);
 
     const formattedPosts = posts.map((post) => ({
       ...post,
       createdAt: dayjs(post.createdAt).fromNow(),
     }));
 
-    const totalPosts = await Post.countDocuments({
-      community: {
-        $in: communityIds,
-      },
-    });
-
-    res.status(200).json({
-      formattedPosts,
-      totalPosts,
-    });
+    res.status(200).json({ formattedPosts, totalPosts });
   } catch (error) {
-    res.status(500).json({
-      message: "Error retrieving posts",
-    });
+    res.status(500).json({ message: "Error retrieving posts" });
   }
 };
 
 /**
- * Retrieves the posts for a given community, including the post information, the number of posts saved by each user,
- * the user who created it, and the community it belongs to.
- *
+ * Retrieves the posts for a given community.
  * @route GET /posts/community/:communityId
  */
 const getCommunityPosts = async (req, res) => {
   try {
     const communityId = req.params.communityId;
     const userId = req.userId;
-
     const { limit = 10, skip = 0 } = req.query;
 
+    // ✅ select("_id").lean() évite de charger tous les champs
     const isMember = await Community.findOne({
       _id: communityId,
       members: userId,
-    });
+    })
+      .select("_id")
+      .lean();
 
     if (!isMember) {
       return res.status(401).json({
@@ -313,41 +296,31 @@ const getCommunityPosts = async (req, res) => {
       });
     }
 
-    const posts = await Post.find({
-      community: communityId,
-    })
-      .sort({
-        createdAt: -1,
-      })
-      .populate("user", "name avatar")
-      .populate("community", "name")
-      .skip(parseInt(skip))
-      .limit(parseInt(limit))
-      .lean();
+    // ✅ Posts + count en parallèle
+    const [posts, totalCommunityPosts] = await Promise.all([
+      Post.find({ community: communityId })
+        .sort({ createdAt: -1 })
+        .populate("user", "name avatar")
+        .populate("community", "name")
+        .skip(parseInt(skip))
+        .limit(parseInt(limit))
+        .lean(),
+      Post.countDocuments({ community: communityId }),
+    ]);
 
     const formattedPosts = posts.map((post) => ({
       ...post,
       createdAt: dayjs(post.createdAt).fromNow(),
     }));
 
-    const totalCommunityPosts = await Post.countDocuments({
-      community: communityId,
-    });
-
-    res.status(200).json({
-      formattedPosts,
-      totalCommunityPosts,
-    });
+    res.status(200).json({ formattedPosts, totalCommunityPosts });
   } catch (error) {
-    res.status(500).json({
-      message: "Error retrieving posts",
-    });
+    res.status(500).json({ message: "Error retrieving posts" });
   }
 };
 
 /**
- * Retrieves the posts of the users that the current user is following in a given community
- *
+ * Retrieves the posts of the users that the current user is following in a given community.
  * @route GET /posts/:id/following
  */
 const getFollowingUsersPosts = async (req, res) => {
@@ -355,23 +328,14 @@ const getFollowingUsersPosts = async (req, res) => {
     const communityId = req.params.id;
     const userId = req.userId;
 
-    const following = await Relationship.find({
-      follower: userId,
-    });
-
-    const followingIds = following.map(
-      (relationship) => relationship.following
-    );
+    const following = await Relationship.find({ follower: userId }).select("following").lean();
+    const followingIds = following.map((r) => r.following);
 
     const posts = await Post.find({
-      user: {
-        $in: followingIds,
-      },
+      user: { $in: followingIds },
       community: communityId,
     })
-      .sort({
-        createdAt: -1,
-      })
+      .sort({ createdAt: -1 })
       .populate("user", "name avatar")
       .populate("community", "name")
       .limit(20)
@@ -384,9 +348,7 @@ const getFollowingUsersPosts = async (req, res) => {
 
     res.status(200).json(formattedPosts);
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -420,26 +382,12 @@ const deletePost = async (req, res) => {
     ]);
 
     await post.remove();
-    res.status(200).json({
-      message: "Post deleted successfully",
-    });
+    res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {
     res.status(404).json({
       message: "An error occurred while deleting the post",
     });
   }
-};
-
-const populatePost = async (post) => {
-  const savedByCount = await User.countDocuments({
-    savedPosts: post._id,
-  });
-
-  return {
-    ...post.toObject(),
-    createdAt: dayjs(post.createdAt).fromNow(),
-    savedByCount,
-  };
 };
 
 /**
@@ -456,20 +404,9 @@ const likePost = async (req, res) => {
     }
 
     const updatedPost = await Post.findOneAndUpdate(
-      {
-        _id: id,
-        likes: {
-          $ne: userId,
-        },
-      },
-      {
-        $addToSet: {
-          likes: userId,
-        },
-      },
-      {
-        new: true,
-      }
+      { _id: id, likes: { $ne: userId } },
+      { $addToSet: { likes: userId } },
+      { new: true }
     )
       .populate("user", "name avatar")
       .populate("community", "name");
@@ -481,12 +418,9 @@ const likePost = async (req, res) => {
     }
 
     const formattedPost = await populatePost(updatedPost);
-
     res.status(200).json(formattedPost);
   } catch (error) {
-    res.status(500).json({
-      message: "Error liking post",
-    });
+    res.status(500).json({ message: "Error liking post" });
   }
 };
 
@@ -500,18 +434,9 @@ const unlikePost = async (req, res) => {
     }
 
     const updatedPost = await Post.findOneAndUpdate(
-      {
-        _id: id,
-        likes: userId,
-      },
-      {
-        $pull: {
-          likes: userId,
-        },
-      },
-      {
-        new: true,
-      }
+      { _id: id, likes: userId },
+      { $pull: { likes: userId } },
+      { new: true }
     )
       .populate("user", "name avatar")
       .populate("community", "name");
@@ -523,12 +448,9 @@ const unlikePost = async (req, res) => {
     }
 
     const formattedPost = await populatePost(updatedPost);
-
     res.status(200).json(formattedPost);
   } catch (error) {
-    res.status(500).json({
-      message: "Error unliking post",
-    });
+    res.status(500).json({ message: "Error unliking post" });
   }
 };
 
@@ -541,29 +463,15 @@ const addComment = async (req, res) => {
       return res.status(access.status).json({ message: access.message });
     }
 
-    const newComment = new Comment({
-      user: userId,
-      post: postId,
-      content,
-    });
+    const newComment = new Comment({ user: userId, post: postId, content });
     await newComment.save();
     await Post.findOneAndUpdate(
-      {
-        _id: { $eq: postId },
-      },
-      {
-        $addToSet: {
-          comments: newComment._id,
-        },
-      }
+      { _id: { $eq: postId } },
+      { $addToSet: { comments: newComment._id } }
     );
-    res.status(200).json({
-      message: "Comment added successfully",
-    });
+    res.status(200).json({ message: "Comment added successfully" });
   } catch (error) {
-    res.status(500).json({
-      message: "Error adding comment",
-    });
+    res.status(500).json({ message: "Error adding comment" });
   }
 };
 
@@ -576,18 +484,11 @@ const unsavePost = async (req, res) => {
 };
 
 /**
- * Saves or unsaves a post for a given user by updating the user's
- * savedPosts array in the database. Uses $addToSet or $pull operation based on the value of the operation parameter.
- *
- * @param req - The request object.
- * @param res - The response object.
- * @param {string} operation - The operation to perform, either "$addToSet" to save the post or "$pull" to unsave it.
+ * Saves or unsaves a post for a given user.
+ * @param {string} operation - "$addToSet" to save or "$pull" to unsave.
  */
 const saveOrUnsavePost = async (req, res, operation) => {
   try {
-    /**
-     * @type {string} id - The ID of the post to be saved or unsaved.
-     */
     const id = req.params.id;
     const userId = req.userId;
     const access = await canAccessPost(id, userId);
@@ -600,27 +501,18 @@ const saveOrUnsavePost = async (req, res, operation) => {
       savedPosts: id,
     };
     const updatedUserPost = await User.findOneAndUpdate(
-      {
-        _id: userId,
-      },
+      { _id: userId },
       update,
-      {
-        new: true,
-      }
+      { new: true }
     )
       .select("savedPosts")
       .populate({
         path: "savedPosts",
-        populate: {
-          path: "community",
-          select: "name",
-        },
+        populate: { path: "community", select: "name" },
       });
 
     if (!updatedUserPost) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const formattedPosts = updatedUserPost.savedPosts.map((post) => ({
@@ -630,9 +522,7 @@ const saveOrUnsavePost = async (req, res, operation) => {
 
     res.status(200).json(formattedPosts);
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -642,36 +532,29 @@ const saveOrUnsavePost = async (req, res, operation) => {
 const getSavedPosts = async (req, res) => {
   try {
     const userId = req.userId;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("savedPosts").lean();
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    /**
-     * send the saved posts of the communities that the user is a member of only
-     */
-    const communityIds = await Community.find({ members: userId }).distinct(
-      "_id"
-    );
+    // ✅ distinct() directement, pas de .map()
+    const communityIds = await Community.find({ members: userId }).distinct("_id");
     const savedPosts = await Post.find({
       community: { $in: communityIds },
       _id: { $in: user.savedPosts },
     })
       .populate("user", "name avatar")
-      .populate("community", "name");
+      .populate("community", "name")
+      .lean();
 
     const formattedPosts = savedPosts.map((post) => ({
-      ...post.toObject(),
+      ...post,
       createdAt: dayjs(post.createdAt).fromNow(),
     }));
 
     res.status(200).json(formattedPosts);
   } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -680,10 +563,6 @@ const getSavedPosts = async (req, res) => {
  * that both the public user and the current user are members of.
  *
  * @route GET /posts/:publicUserId/userPosts
- *
- * @param req.userId - The id of the current user.
- *
- * @param {string} req.params.publicUserId - The id of the public user whose posts to retrieve.
  */
 const getPublicPosts = async (req, res) => {
   try {
@@ -712,10 +591,10 @@ const getPublicPosts = async (req, res) => {
       .populate("community", "_id name")
       .sort("-createdAt")
       .limit(10)
-      .exec();
+      .lean();
 
     const formattedPosts = publicPosts.map((post) => ({
-      ...post.toObject(),
+      ...post,
       createdAt: dayjs(post.createdAt).fromNow(),
     }));
 

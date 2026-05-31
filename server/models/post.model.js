@@ -46,7 +46,14 @@ const postSchema = new Schema(
   }
 );
 
+// Index texte pour la recherche full-text
 postSchema.index({ content: "text" });
+
+// Index composé : requêtes de feed par communauté triées par date
+postSchema.index({ community: 1, createdAt: -1 });
+
+// Index composé : posts d'un utilisateur triés par date
+postSchema.index({ user: 1, createdAt: -1 });
 
 postSchema.pre("remove", async function (next) {
   try {

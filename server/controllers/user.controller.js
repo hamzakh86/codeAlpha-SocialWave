@@ -220,14 +220,23 @@ const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select("-password").lean();
 
-    const totalPosts = await Post.countDocuments({ user: user._id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    const communities = await Community.find({ members: user._id });
+    // Paralléliser les 4 requêtes indépendantes au lieu de les exécuter en séquence
+    const [totalPosts, communities, postCommunities, posts] = await Promise.all([
+      Post.countDocuments({ user: user._id }),
+      Community.find({ members: user._id }).select("_id").lean(),
+      Post.find({ user: user._id }).distinct("community"),
+      Post.find({ user: user._id })
+        .populate("community", "name members")
+        .limit(20)
+        .lean()
+        .sort({ createdAt: -1 }),
+    ]);
+
     const totalCommunities = communities.length;
-
-    const postCommunities = await Post.find({ user: user._id }).distinct(
-      "community"
-    );
     const totalPostCommunities = postCommunities.length;
 
     const createdAt = dayjs(user.createdAt);
@@ -252,11 +261,6 @@ const getUser = async (req, res, next) => {
       const durationYears = Math.floor(durationDays / 365);
       user.duration = `${durationYears} years`;
     }
-    const posts = await Post.find({ user: user._id })
-      .populate("community", "name members")
-      .limit(20)
-      .lean()
-      .sort({ createdAt: -1 });
 
     user.posts = posts.map((post) => ({
       ...post,
@@ -271,6 +275,7 @@ const getUser = async (req, res, next) => {
     next(err);
   }
 };
+
 
 /**
  * Adds a new user to the database with the given name, email, password, and avatar.

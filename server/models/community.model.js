@@ -56,6 +56,13 @@ const communitySchema = new Schema(
   }
 );
 
+// Index texte pour la recherche full-text
 communitySchema.index({ name: "text" });
+
+// Index sur le tableau members : accélère toutes les requêtes de vérification d'appartenance
+communitySchema.index({ members: 1 });
+
+// Index sur bannedUsers : accélère getNotMemberCommunities
+communitySchema.index({ bannedUsers: 1 });
 
 module.exports = mongoose.model("Community", communitySchema);

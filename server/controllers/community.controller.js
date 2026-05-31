@@ -8,14 +8,15 @@ dayjs.extend(relativeTime);
 
 const getCommunities = async (req, res) => {
   try {
-    const communities = await Community.find();
+    // ✅ .lean() : retourne des POJO au lieu d'instances Mongoose (plus rapide)
+    // ✅ .limit(100) : évite un retour illimité de documents
+    const communities = await Community.find().limit(100).lean();
     res.status(200).json(communities);
   } catch (error) {
-    res.status(404).json({
-      message: "No communities found",
-    });
+    res.status(404).json({ message: "No communities found" });
   }
 };
+
 
 const getCommunity = async (req, res) => {
   try {
